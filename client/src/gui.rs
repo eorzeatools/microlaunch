@@ -20,7 +20,9 @@ enum Phase {
         username: String,
         password: String
     },
+    #[allow(dead_code)]
     ReadyToLaunch,
+    #[allow(dead_code)]
     Launching
 }
 
@@ -51,7 +53,7 @@ impl epi::App for MicrolaunchApp {
 }
 
 impl MicrolaunchApp {
-    fn do_loginui(&mut self, ctx: &egui::Context, frame: &epi::Frame, phase: &mut Phase) {
+    fn do_loginui(&mut self, ctx: &egui::Context, _frame: &epi::Frame, phase: &mut Phase) {
         if let Phase::Login { username, password } = phase {
             CentralPanel::default()
             .frame(Frame::none())
