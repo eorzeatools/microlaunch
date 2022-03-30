@@ -16,4 +16,6 @@ Source is out in the open if you want to hack on it, though.
 
 ## Disclaimer
 FINAL FANTASY XIV Online © 2010-2022 SQUARE ENIX CO., LTD., all rights reserved.  
-*I am not affiliated with SQUARE ENIX CO., LTD. in any way.*
+*I am not affiliated with SQUARE ENIX CO., LTD. in any way.*  
+***I am not responsible if this tool gets your character deleted, eats your chocobo, or makes***
+***your entire GC squadron turn into lalafells. You've been warned.***
