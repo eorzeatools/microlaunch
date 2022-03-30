@@ -259,6 +259,7 @@ version = "0.1.0"
 dependencies = [
  "eframe",
  "egui",
+ "lazy_static",
 ]
 
 [[package]]

@@ -8,3 +8,4 @@ edition = "2021"
 [dependencies]
 eframe = "0.17.0"
 egui = "0.17.0"
+lazy_static = "1.4.0"
