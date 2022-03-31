@@ -81,7 +81,7 @@ impl MicrolaunchApp {
 
                     ui.horizontal(|ui| {
                         ui.label("Password");
-                        ui.text_edit_singleline(password);
+                        ui.add(TextEdit::singleline(password).password(true));
                     });
 
                     if ui.button("Log in").clicked() {
