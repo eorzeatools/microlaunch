@@ -37,7 +37,8 @@ lazy_static::lazy_static! {
 }
 
 impl epi::App for MicrolaunchApp {
-    fn setup(&mut self, _ctx: &egui::Context, _frame: &epi::Frame, _storage: Option<&dyn epi::Storage>) {
+    fn setup(&mut self, ctx: &egui::Context, _frame: &epi::Frame, _storage: Option<&dyn epi::Storage>) {
+        ctx.set_pixels_per_point(1.2);
     }
 
     fn update(&mut self, ctx: &egui::Context, frame: &epi::Frame) {
