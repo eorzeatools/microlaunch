@@ -1,4 +1,5 @@
 mod gui;
+mod auth;
 
 fn main() {
     let app = gui::MicrolaunchApp::default();

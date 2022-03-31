@@ -57,7 +57,7 @@ impl MicrolaunchApp {
     fn do_loginui(&mut self, ctx: &egui::Context, _frame: &epi::Frame, phase: &mut Phase) {
         if let Phase::Login { username, password } = phase {
             CentralPanel::default()
-            .frame(Frame::none())
+                .frame(Frame::none())
             .show(ctx, |ui| {
                 let offset = vec2(0.0, 0.0);
 
