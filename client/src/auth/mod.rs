@@ -63,6 +63,10 @@ pub fn get_oauth_page_url(region: i32, ftrial: bool, steam: bool, ticket: Option
             url.push_str("&issteam=1");
             url.push_str(&format!("&session_ticket={}", x.text));
             url.push_str(&format!("&ticket_size={}", x.length));
+        } else {
+            // this code path should never be hit
+            // (steam=true ticket=None)
+            unreachable!()
         }
     }
 
