@@ -3,6 +3,8 @@ use std::sync::Mutex;
 use eframe::{egui, epi};
 use egui::*;
 
+use crate::auth::{AccountType, Platform};
+
 pub struct MicrolaunchApp {
     title: Option<String>
 }
@@ -15,11 +17,16 @@ impl Default for MicrolaunchApp {
     }
 }
 
+struct LoginPhaseData {
+    username: String,
+    password: String,
+    otp: String,
+    account_type: AccountType,
+    platform: Platform
+}
+
 enum Phase {
-    Login {
-        username: String,
-        password: String
-    },
+    Login(LoginPhaseData),
     #[allow(dead_code)]
     ReadyToLaunch,
     #[allow(dead_code)]
@@ -28,10 +35,13 @@ enum Phase {
 
 lazy_static::lazy_static! {
     static ref PHASE: Mutex<Box<Phase>> = {
-        let p = Phase::Login {
+        let p = Phase::Login(LoginPhaseData {
             username: "".into(),
-            password: "".into()
-        };
+            password: "".into(),
+            otp: "".into(),
+            account_type: AccountType::Subscription,
+            platform: Platform::SqexStore
+        });
         Mutex::new(Box::new(p))
     };
 }
@@ -39,6 +49,14 @@ lazy_static::lazy_static! {
 impl epi::App for MicrolaunchApp {
     fn setup(&mut self, ctx: &egui::Context, _frame: &epi::Frame, _storage: Option<&dyn epi::Storage>) {
         ctx.set_pixels_per_point(1.2);
+        
+        let mut style = (*ctx.style()).clone();
+
+        let mut spc = egui::style::Spacing::default();
+        spc.item_spacing = vec2(8.0, 6.0);
+        style.spacing = spc;
+
+        ctx.set_style(style);
     }
 
     fn update(&mut self, ctx: &egui::Context, frame: &epi::Frame) {
@@ -55,7 +73,7 @@ impl epi::App for MicrolaunchApp {
 
 impl MicrolaunchApp {
     fn do_loginui(&mut self, ctx: &egui::Context, _frame: &epi::Frame, phase: &mut Phase) {
-        if let Phase::Login { username, password } = phase {
+        if let Phase::Login(data) = phase {
             CentralPanel::default()
                 .frame(Frame::none())
             .show(ctx, |ui| {
@@ -70,19 +88,44 @@ impl MicrolaunchApp {
 
 
                 let win = Window::new("log in")
-                    .id(Id::new("ml-login-window"))
+                    .id(Id::new("ul-login-window"))
+                    .title_bar(false)
                     .anchor(Align2::CENTER_CENTER, offset);
 
                 win.show(ctx, |ui| {
-                    ui.horizontal(|ui| {
-                        ui.label("Square Enix ID");
-                        ui.text_edit_singleline(username);
-                    });
+                    ui.add(TextEdit::singleline(&mut data.username).hint_text("Square Enix ID..."));
 
-                    ui.horizontal(|ui| {
-                        ui.label("Password");
-                        ui.add(TextEdit::singleline(password).password(true));
-                    });
+                    ui.add(TextEdit::singleline(&mut data.password).password(true).hint_text("Password..."));
+
+                    ui.add(TextEdit::singleline(&mut data.otp).hint_text("One-time password... (leave blank if n/a)"));
+
+                    ComboBox::from_label("Platform")
+                        .selected_text(
+                            match data.platform {
+                                Platform::SqexStore => "Square Enix",
+                                Platform::Steam => "Steam"
+                            }
+                        )
+                        .show_ui(ui, |ui| {
+                            ui.selectable_value(&mut data.platform, Platform::SqexStore,
+                                "Square Enix");
+                            ui.selectable_value(&mut data.platform, Platform::Steam,
+                                "Steam");
+                        });
+                    
+                    ComboBox::from_label("Account type")
+                        .selected_text(
+                            match data.account_type {
+                                AccountType::Subscription => "Full game",
+                                AccountType::FreeTrial => "Free trial"
+                            }
+                        )
+                        .show_ui(ui, |ui| {
+                            ui.selectable_value(&mut data.account_type, AccountType::Subscription,
+                                "Full game");
+                            ui.selectable_value(&mut data.account_type, AccountType::FreeTrial,
+                                "Free trial");
+                        });
 
                     if ui.button("Log in").clicked() {
                         // do something

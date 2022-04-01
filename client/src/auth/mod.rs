@@ -5,18 +5,21 @@ use self::steam::SteamTicket;
 
 mod steam;
 
+#[derive(Hash, PartialEq, Eq)]
 #[repr(i32)]
 pub enum Platform {
     SqexStore = 0,
     Steam = 1
 }
 
+#[derive(Hash, PartialEq, Eq)]
 #[repr(i32)]
 pub enum AccountType {
     Subscription = 0,
     FreeTrial = 1
 }
 
+#[derive(Hash, PartialEq, Eq)]
 #[repr(i32)]
 pub enum GameRegion {
     Region0 = 0,
