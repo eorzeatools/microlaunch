@@ -75,3 +75,33 @@ pub fn get_oauth_page_url(region: i32, ftrial: bool, steam: bool, ticket: Option
 
     url
 }
+
+/// Square Enix wants a unique computer ID
+/// so this is how I generate one
+pub fn generate_computer_id() -> String {
+    use sha2::Digest;
+
+    // This is dumb and bad code
+    let unique_bytes: [u8; 4] = if cfg!(target_os = "linux") {
+        let cmd = std::process::Command::new("uname")
+            .arg("-a")
+            .output()
+            .expect("failed to run uname -a? wtf?");
+        let mut sha = sha2::Sha256::new();
+        sha.update(cmd.stdout);
+        let fin = sha.finalize();
+        fin[0..4].try_into().unwrap()
+    } else {
+        [0xde, 0xad, 0xc0, 0xde]
+    };
+
+    let actual_bytes = {
+        let mut fuck: [u8; 5] = [0, 0, 0, 0, 0];
+        fuck[1..].clone_from_slice(&unique_bytes);
+        let checksum = (-((fuck[1] + fuck[2] + fuck[3] + fuck[4]) as i32)) as u8;
+        fuck[0] = checksum;
+        fuck
+    };
+
+    hex::encode(actual_bytes)
+}
