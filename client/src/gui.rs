@@ -33,7 +33,18 @@ enum Phase {
     Launching
 }
 
+struct State {
+    pub uuid: String
+}
+
 lazy_static::lazy_static! {
+    static ref STATE: Mutex<Box<State>> = {
+        let st = State {
+            uuid: crate::auth::generate_computer_id()
+        };
+        Mutex::new(Box::new(st))
+    };
+
     static ref PHASE: Mutex<Box<Phase>> = {
         let p = Phase::Login(LoginPhaseData {
             username: "".into(),
@@ -63,7 +74,16 @@ impl epi::App for MicrolaunchApp {
         match PHASE.lock().unwrap().as_mut() {
             x @ Phase::Login { .. } => self.do_loginui(ctx, frame, x),
             _ => todo!()
-        }  
+        }
+
+        Window::new("debug stuff")
+            .id(Id::new("ul-debug-window"))
+            .show(ctx, |ui|
+        {
+            let state = STATE.lock().unwrap();
+
+            ui.label(format!("computer unique SE-UUID: {}", state.uuid));
+        });
     }
 
     fn name(&self) -> &str {
