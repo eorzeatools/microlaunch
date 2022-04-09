@@ -20,7 +20,11 @@ pub enum GameLaunchStrategy {
 #[derive(Deserialize)]
 pub struct LauncherConfig {
     #[serde(rename="game_launch_strategy")]
-    pub strategy: GameLaunchStrategy
+    pub strategy: GameLaunchStrategy,
+
+    // REQUIRED for "integrity" checking
+    // (aka Square Enix is stupid again)
+    pub game_path: String,
 }
 
 #[derive(Deserialize)]
@@ -50,7 +54,6 @@ pub struct ExperimentalConfig {
     // touch unless you know what you're doing
 
     // Randomly tweaks the computer identifier
-    // to try to bust state
     pub tweak_computer_id_randomly: bool
 }
 

@@ -2,7 +2,7 @@
 // This opens the game lol
 
 use std::collections::HashMap;
-use crate::{auth::{ClientLanguage, GameLoginData}, config::GameLaunchStrategy};
+use crate::{auth::{ClientLanguage, GameLoginData}, config::GameLaunchStrategy, integrity::{Repository, RepositoryId}};
 
 fn build_cli_args_for_game(map: HashMap::<&str, &str>) -> String {
     let mut out: String = "".into();
@@ -12,8 +12,8 @@ fn build_cli_args_for_game(map: HashMap::<&str, &str>) -> String {
     out
 }
 
-pub fn launch_game(data: &GameLoginData, language: ClientLanguage) {
-    let sid = &data.sid;
+pub fn launch_game(data: &GameLoginData, language: ClientLanguage, unique_patch_id: &str) {
+    //let sid = &data.sid;
     let region = &data.region;
 
     // TODO: steam
@@ -28,7 +28,7 @@ pub fn launch_game(data: &GameLoginData, language: ClientLanguage) {
     let mut argmap = HashMap::new();
     argmap.insert("DEV.DataPathType", "1");
     argmap.insert("DEV.MaxEntitledExpansionID", &max_exp);
-    argmap.insert("DEV.TestSID", &sid);
+    argmap.insert("DEV.TestSID", &unique_patch_id);
     argmap.insert("DEV.UseSqPack", "1");
     argmap.insert("SYS.Region", &region_str);
     argmap.insert("language", &language_str);
@@ -39,8 +39,7 @@ pub fn launch_game(data: &GameLoginData, language: ClientLanguage) {
                 let game_binary_path =
                     std::path::Path::new(&direct_config.game_binary_path);
 
-                let version_file_path = game_binary_path.parent().unwrap().join("ffxivgame.ver");
-                let game_version = std::fs::read_to_string(version_file_path).expect("could not read ffxivgame.ver");
+                let game_version = Repository(RepositoryId::Ffxiv).get_version().unwrap();
                 println!("FFXIVGame version {game_version}");
                 let game_args = build_cli_args_for_game(argmap);
                 println!("game args: {game_args}");
@@ -72,7 +71,7 @@ pub fn launch_game(data: &GameLoginData, language: ClientLanguage) {
                 let mut command = std::process::Command::new(proton_binary_path);
                 let command = command.arg("run");
                 let command = command.arg(game_binary_path);
-                let command = command.arg(game_args);
+                let command = command.args(game_args.split(" "));
                 let command = command.env("STEAM_COMPAT_DATA_PATH", &proton_config.compat_data_path);
                 let command = command.env("STEAM_COMPAT_CLIENT_INSTALL_PATH", &proton_config.compat_client_install_path);
                 println!("LAUNCHING:");

@@ -3,7 +3,7 @@ use parking_lot::Mutex;
 use eframe::{egui, epi};
 use egui::*;
 
-use crate::auth::{AccountType, Platform, GameLoginResult, GameLoginData, ClientLanguage};
+use crate::{auth::{AccountType, Platform, GameLoginResult, GameLoginData, ClientLanguage}, session::RegisterSessionResult};
 
 pub struct MicrolaunchApp {
     title: Option<String>
@@ -31,7 +31,7 @@ struct LoginPhaseData {
 #[derive(Clone)]
 enum Phase {
     Login(LoginPhaseData),
-    ReadyToLaunch(GameLoginData),
+    ReadyToLaunch((GameLoginData, RegisterSessionResult)),
     #[allow(dead_code)]
     Launching
 }
@@ -106,34 +106,37 @@ impl epi::App for MicrolaunchApp {
 
 impl MicrolaunchApp {
     fn do_readyui(&mut self, ctx: &egui::Context, _frame: &epi::Frame, phase: &mut Phase) {
-        if let Phase::ReadyToLaunch(data) = phase {
-            CentralPanel::default()
-                .frame(Frame::none())
-            .show(ctx, |ui| {
-                let offset = vec2(0.0, 0.0);
+        if let Phase::ReadyToLaunch((data, register)) = phase {
+            if let RegisterSessionResult::Ok(register_token) = register {
+                CentralPanel::default()
+                    .frame(Frame::none())
+                .show(ctx, |ui| {
+                    let offset = vec2(0.0, 0.0);
 
-                ui.allocate_ui_at_rect(
-                    Rect::from_two_pos(pos2(20.0, 20.0), pos2(999.0, 999.0)),
-                |ui| {
-                    ui.heading("microlaunch");
-                    ui.label("by rin 2022");
+                    ui.allocate_ui_at_rect(
+                        Rect::from_two_pos(pos2(20.0, 20.0), pos2(999.0, 999.0)),
+                    |ui| {
+                        ui.heading("microlaunch");
+                        ui.label("by rin 2022");
+                    });
+
+                    let win = Window::new("ready to play")
+                        .id(Id::new("ul-readytoplay-window"))
+                        .title_bar(false)
+                        .anchor(Align2::CENTER_CENTER, offset);
+
+                    win.show(ctx, |ui| {
+                        ui.label(format!("unique patch ID: {}", register_token));
+                        ui.label(format!("game edition: {:?}", data.max_expansion));
+                        ui.label(format!("region: {:?}", data.region));
+                        if ui.button("launch the game!").clicked() {
+                            // LAUNCH!
+                            crate::launch::launch_game(data, ClientLanguage::English, register_token);
+                        }
+                    })
                 });
+            }
 
-                let win = Window::new("ready to play")
-                    .id(Id::new("ul-readytoplay-window"))
-                    .title_bar(false)
-                    .anchor(Align2::CENTER_CENTER, offset);
-
-                win.show(ctx, |ui| {
-                    ui.label(format!("session ID (SID): {}", data.sid));
-                    ui.label(format!("game edition: {:?}", data.max_expansion));
-                    ui.label(format!("region: {:?}", data.region));
-                    if ui.button("launch the game!").clicked() {
-                        // LAUNCH!
-                        crate::launch::launch_game(data, ClientLanguage::English);
-                    }
-                })
-            });
         }
     }
 
@@ -215,9 +218,21 @@ impl MicrolaunchApp {
                             ).await
                         });
                         match a {
-                            GameLoginResult::Successful(data) => {
-                                // set phase
-                                *NEXT_PHASE.lock() = Some(Box::new(Phase::ReadyToLaunch(data)));
+                            GameLoginResult::Successful(ldata) => {
+                                let d2 = ldata.clone();
+                                let register = rt.block_on(async move {
+                                    crate::session::register_session(&d2).await
+                                });
+                                match register {
+                                    RegisterSessionResult::Ok(_) => {},
+                                    RegisterSessionResult::GamePatchNeeded => {
+                                        data.error_text = Some("Game patch is required! microlaunch does not currently do this, sorry!".into());
+                                    },
+                                    RegisterSessionResult::BootPatchNeeded => {
+                                        data.error_text = Some("Boot patch is required! microlaunch does not currently do this, sorry!".into());
+                                    },
+                                }
+                                *NEXT_PHASE.lock() = Some(Box::new(Phase::ReadyToLaunch((ldata, register))));
                             },
                             GameLoginResult::SteamLinkRequired => {
                                 data.error_text = Some("Steam link required - please link your Square Enix account to Steam through Windows".into());

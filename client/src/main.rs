@@ -2,6 +2,9 @@ mod gui;
 mod auth;
 mod config;
 mod launch;
+mod integrity;
+mod session;
+mod other;
 
 fn main() {
     let app = gui::MicrolaunchApp::default();

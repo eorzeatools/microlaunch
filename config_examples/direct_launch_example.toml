@@ -5,6 +5,7 @@
 
 [launcher]
 game_launch_strategy="direct_launch"
+game_path="C:\\Steam\\steamapps\\common\\FINAL FANTASY XIV Online"
 
 [direct_launch]
 

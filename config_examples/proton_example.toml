@@ -7,6 +7,7 @@
 
 [launcher]
 game_launch_strategy="proton"
+game_path="/home/rin/.steam/steamapps/common/FINAL FANTASY XIV Online"
 
 [proton]
 
