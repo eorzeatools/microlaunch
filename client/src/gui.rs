@@ -1,10 +1,9 @@
-use std::borrow::BorrowMut;
 use parking_lot::Mutex;
 
 use eframe::{egui, epi};
 use egui::*;
 
-use crate::auth::{AccountType, Platform};
+use crate::auth::{AccountType, Platform, GameLoginResult, GameLoginData, ClientLanguage};
 
 pub struct MicrolaunchApp {
     title: Option<String>
@@ -24,13 +23,15 @@ struct LoginPhaseData {
     password: String,
     otp: String,
     account_type: AccountType,
-    platform: Platform
+    platform: Platform,
+
+    error_text: Option<String>
 }
 
+#[derive(Clone)]
 enum Phase {
     Login(LoginPhaseData),
-    #[allow(dead_code)]
-    ReadyToLaunch,
+    ReadyToLaunch(GameLoginData),
     #[allow(dead_code)]
     Launching
 }
@@ -40,6 +41,10 @@ struct State {
 }
 
 lazy_static::lazy_static! {
+    static ref NEXT_PHASE: Mutex<Option<Box<Phase>>> = {
+        Mutex::new(None)
+    };
+
     static ref STATE: Mutex<Box<State>> = {
         let st = State {
             uuid: crate::auth::generate_computer_id()
@@ -53,7 +58,8 @@ lazy_static::lazy_static! {
             password: "".into(),
             otp: "".into(),
             account_type: AccountType::Subscription,
-            platform: Platform::SqexStore
+            platform: Platform::SqexStore,
+            error_text: None
         });
         Mutex::new(Box::new(p))
     };
@@ -73,8 +79,13 @@ impl epi::App for MicrolaunchApp {
     }
 
     fn update(&mut self, ctx: &egui::Context, frame: &epi::Frame) {
-        match PHASE.lock().borrow_mut().as_mut() {
-            x @ Phase::Login { .. } => self.do_loginui(ctx, frame, x),
+        if let Some(x) = NEXT_PHASE.lock().as_ref() {
+            *PHASE.lock().as_mut() = *x.clone();
+        }
+
+        match PHASE.lock().as_mut() {
+            mut x @ Phase::Login { .. } => self.do_loginui(ctx, frame, &mut x),
+            mut y @ Phase::ReadyToLaunch { .. } => self.do_readyui(ctx, frame, &mut y),
             _ => todo!()
         }
 
@@ -94,6 +105,38 @@ impl epi::App for MicrolaunchApp {
 }
 
 impl MicrolaunchApp {
+    fn do_readyui(&mut self, ctx: &egui::Context, _frame: &epi::Frame, phase: &mut Phase) {
+        if let Phase::ReadyToLaunch(data) = phase {
+            CentralPanel::default()
+                .frame(Frame::none())
+            .show(ctx, |ui| {
+                let offset = vec2(0.0, 0.0);
+
+                ui.allocate_ui_at_rect(
+                    Rect::from_two_pos(pos2(20.0, 20.0), pos2(999.0, 999.0)),
+                |ui| {
+                    ui.heading("microlaunch");
+                    ui.label("by rin 2022");
+                });
+
+                let win = Window::new("ready to play")
+                    .id(Id::new("ul-readytoplay-window"))
+                    .title_bar(false)
+                    .anchor(Align2::CENTER_CENTER, offset);
+
+                win.show(ctx, |ui| {
+                    ui.label(format!("session ID (SID): {}", data.sid));
+                    ui.label(format!("game edition: {:?}", data.max_expansion));
+                    ui.label(format!("region: {:?}", data.region));
+                    if ui.button("launch the game!").clicked() {
+                        // LAUNCH!
+                        crate::launch::launch_game(data, ClientLanguage::English);
+                    }
+                })
+            });
+        }
+    }
+
     fn do_loginui(&mut self, ctx: &egui::Context, _frame: &epi::Frame, phase: &mut Phase) {
         if let Phase::Login(data) = phase {
             CentralPanel::default()
@@ -148,6 +191,10 @@ impl MicrolaunchApp {
                             ui.selectable_value(&mut data.account_type, AccountType::FreeTrial,
                                 "Free trial");
                         });
+                    
+                    if let Some(text) = &data.error_text {
+                        ui.colored_label(egui::Color32::RED, text);
+                    }
 
                     if ui.button("Log in").clicked() {
                         let fucker = data.clone();
@@ -156,7 +203,7 @@ impl MicrolaunchApp {
                             .enable_all()
                             .build()
                             .unwrap();
-                        rt.block_on(async move {
+                        let a = rt.block_on(async move {
                             crate::auth::login_oauth(
                                 &fucker.username.clone(),
                                 &fucker.password.clone(),
@@ -165,8 +212,20 @@ impl MicrolaunchApp {
                                 fucker.platform.clone() == Platform::Steam,
                                 crate::auth::GameRegion::Europe,
                                 None
-                            ).await;
+                            ).await
                         });
+                        match a {
+                            GameLoginResult::Successful(data) => {
+                                // set phase
+                                *NEXT_PHASE.lock() = Some(Box::new(Phase::ReadyToLaunch(data)));
+                            },
+                            GameLoginResult::SteamLinkRequired => {
+                                data.error_text = Some("Steam link required - please link your Square Enix account to Steam through Windows".into());
+                            },
+                            GameLoginResult::Error => {
+                                data.error_text = Some("An error has occurred - username/password invalid?".into());
+                            }
+                        }
                     }
                 });
             });

@@ -5,10 +5,9 @@
 #![allow(unused_variables)]
 
 use std::collections::HashMap;
-
 use regex::Regex;
-
 use self::steam::SteamTicket;
+use itertools::Itertools;
 
 mod steam;
 
@@ -26,13 +25,75 @@ pub enum AccountType {
     FreeTrial = 1
 }
 
-#[derive(Hash, PartialEq, Eq, Clone)]
+#[derive(Hash, PartialEq, Eq, Clone, Copy)]
 #[repr(i32)]
 pub enum GameRegion {
     Japan = 1,
     America = 2,
     Europe = 3,
     Korea = 101
+}
+
+impl std::fmt::Debug for GameRegion {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Japan => write!(f, "Japan"),
+            Self::America => write!(f, "America"),
+            Self::Europe => write!(f, "Europe"),
+            Self::Korea => write!(f, "Korea"),
+        }
+    }
+}
+
+impl TryFrom<i32> for GameRegion {
+    type Error = ();
+
+    fn try_from(value: i32) -> Result<Self, Self::Error> {
+        match value {
+            x if x == (GameRegion::Japan as i32) => Ok(GameRegion::Japan),
+            x if x == (GameRegion::America as i32) => Ok(GameRegion::America),
+            x if x == (GameRegion::Europe as i32) => Ok(GameRegion::Europe),
+            x if x == (GameRegion::Korea as i32) => Ok(GameRegion::Korea),
+            _ => Err(())
+        }
+    }
+}
+
+#[derive(Hash, PartialEq, Eq, Clone, Copy)]
+#[repr(i32)]
+pub enum Expansion {
+    ARealmReborn = 0,
+    Heavensward = 1,
+    Stormblood = 2,
+    Shadowbringers = 3,
+    Endwalker = 4
+}
+
+impl TryFrom<i32> for Expansion {
+    type Error = ();
+
+    fn try_from(value: i32) -> Result<Self, Self::Error> {
+        match value {
+            x if x == (Expansion::ARealmReborn as i32) => Ok(Expansion::ARealmReborn),
+            x if x == (Expansion::Heavensward as i32) => Ok(Expansion::Heavensward),
+            x if x == (Expansion::Stormblood as i32) => Ok(Expansion::Stormblood),
+            x if x == (Expansion::Shadowbringers as i32) => Ok(Expansion::Shadowbringers),
+            x if x == (Expansion::Endwalker as i32) => Ok(Expansion::Endwalker),
+            _ => Err(())
+        }
+    }
+}
+
+impl std::fmt::Debug for Expansion {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::ARealmReborn => write!(f, "Final Fantasy XIV: A Realm Reborn"),
+            Self::Heavensward => write!(f, "Final Fantasy XIV: Heavensward"),
+            Self::Stormblood => write!(f, "Final Fantasy XIV: Stormblood"),
+            Self::Shadowbringers => write!(f, "Final Fantasy XIV: Shadowbringers"),
+            Self::Endwalker => write!(f, "Final Fantasy XIV: Endwalker"),
+        }
+    }
 }
 
 pub enum ClientLanguage {
@@ -53,10 +114,18 @@ impl ClientLanguage {
     }
 }
 
-pub struct LoginParams {
-    pub region: String,
-    pub platform: Platform,
-    pub account_type: AccountType
+pub enum GameLoginResult {
+    Successful(GameLoginData),
+    SteamLinkRequired,
+    Error
+}
+
+#[derive(Clone)]
+pub struct GameLoginData {
+    pub sid: String,
+    pub region: GameRegion,
+    pub max_expansion: Expansion,
+    pub playable: bool,
 }
 
 pub async fn login_oauth(
@@ -67,7 +136,7 @@ pub async fn login_oauth(
     steam: bool,
     region: GameRegion,
     ticket: Option<SteamTicket>
-) {
+) -> GameLoginResult {
     if matches!(ticket, None) && steam {
         panic!("what the Fuck ???????????");
     }
@@ -99,7 +168,7 @@ pub async fn login_oauth(
         if top_text.contains("window.external.user(\"restartup\");") {
             if steam {
                 println!("Steam link required - please link Square Enix acct to Steam");
-                return;
+                return GameLoginResult::SteamLinkRequired;
             }
 
             panic!("invalid resp - restartUp but not steam wtf");
@@ -137,8 +206,28 @@ pub async fn login_oauth(
     let resp = req.send().await;
 
     let f = resp.unwrap().text().await.unwrap();
-    println!("got login response:");
-    println!("{}", f);
+    println!("got login response");
+
+    let resp_regex = regex::Regex::new(r#"window.external.user\("login=auth,ok,(.*)"\);"#).unwrap();
+    let re_match = resp_regex.captures(&f).expect("no match? (bad login?)");
+    let login_args = re_match.get(1).expect("no match? (get(1) fail)").as_str();
+    println!("login arguments are: {login_args}");
+
+    let got_keys = login_args.split(",");
+    let keys =
+        got_keys.tuples().fold(HashMap::new(), |mut map, (k,v)| {
+            map.insert(k, v);
+            map
+        });
+
+    let data = GameLoginData {
+        playable: keys.get("playable") == Some(&"1"),
+        sid: (*keys.get("sid").unwrap()).into(),
+        max_expansion: (*keys.get("maxex").unwrap()).parse::<i32>().unwrap().try_into().unwrap(),
+        region: (*keys.get("region").unwrap()).parse::<i32>().unwrap().try_into().unwrap()
+    };
+
+    GameLoginResult::Successful(data)
 }
 
 pub fn get_oauth_page_url(region: i32, ftrial: bool, steam: bool, ticket: Option<SteamTicket>) -> String {
@@ -150,7 +239,7 @@ pub fn get_oauth_page_url(region: i32, ftrial: bool, steam: bool, ticket: Option
     if steam {
         if let Some(x) = ticket {
             // I can't merge this `if let` into the main `if`
-            // because it's a nightly feature (~rust 1.59.0)
+            // because it's a nightly feature (~rust 1.60.0)
             // IGNORE THIS FOR NOW
             url.push_str("&issteam=1");
             url.push_str(&format!("&session_ticket={}", x.text));
