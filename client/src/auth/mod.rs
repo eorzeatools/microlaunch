@@ -268,7 +268,17 @@ pub fn generate_computer_id() -> String {
         let mut sha = sha2::Sha256::new();
         sha.update(cmd.stdout);
         let fin = sha.finalize();
-        fin[0..4].try_into().unwrap()
+        let mut bytes: [u8; 4] = fin[0..4].try_into().unwrap();
+
+        if let Some(experimental) = &crate::config::CONFIG.experimental {
+            if experimental.tweak_computer_id_randomly {
+                for i in 0..4 {
+                    bytes[i] = bytes[i].wrapping_add(rand::random::<u8>());
+                }
+            }
+        }
+
+        bytes
     } else {
         [0xde, 0xad, 0xc0, 0xde]
     };
@@ -276,7 +286,7 @@ pub fn generate_computer_id() -> String {
     let actual_bytes = {
         let mut fuck: [u8; 5] = [0, 0, 0, 0, 0];
         fuck[1..].clone_from_slice(&unique_bytes);
-        let checksum = (-((fuck[1] + fuck[2] + fuck[3] + fuck[4]) as i32)) as u8;
+        let checksum = (-((fuck[1].overflowing_add(fuck[2]).0.overflowing_add(fuck[3]).0.overflowing_add(fuck[4])).0 as i64)) as u8;
         fuck[0] = checksum;
         fuck
     };

@@ -7,6 +7,7 @@ pub struct MicrolaunchConfig {
     pub launcher: LauncherConfig,
     pub proton: Option<ProtonConfig>,
     pub direct_launch: Option<DirectLaunchConfig>,
+    pub experimental: Option<ExperimentalConfig>
 }
 
 #[derive(Deserialize, Debug)]
@@ -40,6 +41,17 @@ pub struct ProtonConfig {
     pub proton_root_path: String,
     // Absolute path to ffxiv_dx11.exe
     pub game_binary_path: String,
+}
+
+#[derive(Deserialize)]
+pub struct ExperimentalConfig {
+    // Experimental config contains
+    // things that you probably shouldn't
+    // touch unless you know what you're doing
+
+    // Randomly tweaks the computer identifier
+    // to try to bust state
+    pub tweak_computer_id_randomly: bool
 }
 
 lazy_static::lazy_static! {

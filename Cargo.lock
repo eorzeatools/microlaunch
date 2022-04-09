@@ -278,6 +278,7 @@ dependencies = [
  "itertools",
  "lazy_static",
  "parking_lot 0.12.0",
+ "rand",
  "regex",
  "reqwest",
  "serde",
