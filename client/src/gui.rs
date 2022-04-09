@@ -1,4 +1,5 @@
-use std::sync::Mutex;
+use std::borrow::BorrowMut;
+use parking_lot::Mutex;
 
 use eframe::{egui, epi};
 use egui::*;
@@ -17,6 +18,7 @@ impl Default for MicrolaunchApp {
     }
 }
 
+#[derive(Clone)]
 struct LoginPhaseData {
     username: String,
     password: String,
@@ -71,7 +73,7 @@ impl epi::App for MicrolaunchApp {
     }
 
     fn update(&mut self, ctx: &egui::Context, frame: &epi::Frame) {
-        match PHASE.lock().unwrap().as_mut() {
+        match PHASE.lock().borrow_mut().as_mut() {
             x @ Phase::Login { .. } => self.do_loginui(ctx, frame, x),
             _ => todo!()
         }
@@ -80,7 +82,7 @@ impl epi::App for MicrolaunchApp {
             .id(Id::new("ul-debug-window"))
             .show(ctx, |ui|
         {
-            let state = STATE.lock().unwrap();
+            let state = STATE.lock();
 
             ui.label(format!("computer unique SE-UUID: {}", state.uuid));
         });
@@ -148,7 +150,23 @@ impl MicrolaunchApp {
                         });
 
                     if ui.button("Log in").clicked() {
-                        // do something
+                        let fucker = data.clone();
+                        let rt = tokio::runtime::Builder::new_multi_thread()
+                            .thread_name("microlaunch-login-worker")
+                            .enable_all()
+                            .build()
+                            .unwrap();
+                        rt.block_on(async move {
+                            crate::auth::login_oauth(
+                                &fucker.username.clone(),
+                                &fucker.password.clone(),
+                                &fucker.otp.clone(),
+                                fucker.account_type.clone() == AccountType::FreeTrial,
+                                fucker.platform.clone() == Platform::Steam,
+                                crate::auth::GameRegion::Europe,
+                                None
+                            ).await;
+                        });
                     }
                 });
             });
