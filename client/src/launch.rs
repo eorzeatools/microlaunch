@@ -45,7 +45,7 @@ pub fn launch_game(data: &GameLoginData, language: ClientLanguage, unique_patch_
                 println!("game args: {game_args}");
 
                 let mut command = std::process::Command::new(game_binary_path);
-                let command = command.arg(game_args);
+                let command = command.args(game_args.split(" "));
                 println!("LAUNCHING DIRECTLY");
                 let cmd = command.spawn().expect("failed to launch executable!");
                 println!("Game PID = {}", cmd.id());
