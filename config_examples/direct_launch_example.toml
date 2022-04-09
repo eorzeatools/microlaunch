@@ -7,4 +7,6 @@
 game_launch_strategy="direct_launch"
 
 [direct_launch]
+
+# Absolute path to ffxiv_dx11.exe
 game_binary_path="C:\\Steam\\steamapps\\common\\FINAL FANTASY XIV Online\\game\\ffxiv_dx11.exe"
