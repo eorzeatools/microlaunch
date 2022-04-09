@@ -1,0 +1,5 @@
+[proton]
+compat_data_path="/home/rin/.steam/compatdata/39210"
+compat_client_install_path="/home/rin/.steam/steam"
+proton_root_path="/home/rin/.local/share/Steam/compatibilitytools.d/GE-Proton7-10/"
+game_binary_path="/home/rin/.steam/steamapps/common/FINAL FANTASY XIV Online/game/ffxiv_dx11.exe"
