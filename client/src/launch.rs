@@ -64,8 +64,7 @@ pub fn launch_game(data: &GameLoginData, language: ClientLanguage, unique_patch_
                 let game_binary_path =
                     std::path::Path::new(&proton_config.game_binary_path);
         
-                let version_file_path = game_binary_path.parent().unwrap().join("ffxivgame.ver");
-                let game_version = std::fs::read_to_string(version_file_path).expect("could not read ffxivgame.ver");
+                let game_version = Repository(RepositoryId::Ffxiv).get_version().unwrap();
                 println!("FFXIVGame version {game_version}");
                 let game_args = build_cli_args_for_game(argmap);
                 println!("game args: {game_args}");
