@@ -1,5 +1,15 @@
 [proton]
+
+# Compat data path - path to the compatdata directory for app 39210 (FFXIV)
 compat_data_path="/home/rin/.steam/compatdata/39210"
+
+# Compat client install path - path to your Steam client install.
+# You can probably leave this as /home/USERNAME/.steam/steam.
 compat_client_install_path="/home/rin/.steam/steam"
+
+# Proton root path - path to a Proton installation.
+# (This folder should contain the `proton` binary.)
 proton_root_path="/home/rin/.local/share/Steam/compatibilitytools.d/GE-Proton7-10/"
+
+# Absolute path to ffxiv_dx11.exe.
 game_binary_path="/home/rin/.steam/steamapps/common/FINAL FANTASY XIV Online/game/ffxiv_dx11.exe"
