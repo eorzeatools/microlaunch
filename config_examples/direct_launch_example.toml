@@ -1,0 +1,10 @@
+# The direct launch strategy simply executes
+# whatever is at game_binary_path with the arguments
+# needed to launch the game. This is best suited
+# for use with Windows systems running microlaunch.
+
+[launcher]
+game_launch_strategy="direct_launch"
+
+[direct_launch]
+game_binary_path="C:\\Steam\\steamapps\\common\\FINAL FANTASY XIV Online\\game\\ffxiv_dx11.exe"

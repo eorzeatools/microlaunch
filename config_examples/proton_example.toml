@@ -1,3 +1,13 @@
+# The Proton strategy launches the game
+# using Valve's Proton compatibility layer.
+# It is best suited for use with Linux systems.
+
+# You do not need a Steam service account to be able
+# to use Proton as your launch strategy.
+
+[launcher]
+game_launch_strategy="proton"
+
 [proton]
 
 # Compat data path - path to the compatdata directory for app 39210 (FFXIV)

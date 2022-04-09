@@ -4,13 +4,28 @@ use serde::Deserialize;
 
 #[derive(Deserialize)]
 pub struct MicrolaunchConfig {
-    pub game: Option<GameConfig>,
-    pub proton: Option<ProtonConfig>
+    pub launcher: LauncherConfig,
+    pub proton: Option<ProtonConfig>,
+    pub direct_launch: Option<DirectLaunchConfig>,
+}
+
+#[derive(Deserialize, Debug)]
+#[serde(rename_all="snake_case")]
+pub enum GameLaunchStrategy {
+    Proton,
+    DirectLaunch
 }
 
 #[derive(Deserialize)]
-pub struct GameConfig {
-    pub max_entitled_expansion_id: String
+pub struct LauncherConfig {
+    #[serde(rename="game_launch_strategy")]
+    pub strategy: GameLaunchStrategy
+}
+
+#[derive(Deserialize)]
+pub struct DirectLaunchConfig {
+    // Absolute path to ffxiv_dx11.exe
+    pub game_binary_path: String,
 }
 
 #[derive(Deserialize)]
