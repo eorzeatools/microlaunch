@@ -52,6 +52,8 @@ pub fn launch_game(data: &GameLoginData, language: ClientLanguage, unique_patch_
                 std::thread::spawn(move || {
                     cmd.wait_with_output().unwrap();
                 });
+            } else {
+                panic!("Direct launch strategy selected but no configuration found.");
             }
         },
         GameLaunchStrategy::Proton => {
