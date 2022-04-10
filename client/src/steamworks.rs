@@ -31,3 +31,7 @@ pub fn init_steamworks_for_app(app: SteamworksAppid) -> Result<(Client, SingleCl
 
     Ok((client, single))
 }
+
+pub fn get_steam_server_time(client: &Client) -> u32 {
+    client.utils().get_server_real_time()
+}
