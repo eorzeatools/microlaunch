@@ -9,7 +9,7 @@ use regex::Regex;
 use self::steam::SteamTicket;
 use itertools::Itertools;
 
-mod steam;
+pub mod steam;
 
 #[derive(Hash, PartialEq, Eq, Clone, Copy)]
 #[repr(i32)]

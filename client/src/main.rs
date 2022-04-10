@@ -5,6 +5,7 @@ mod launch;
 mod integrity;
 mod session;
 mod other;
+mod steamworks;
 
 fn main() {
     let app = gui::MicrolaunchApp::default();

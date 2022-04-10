@@ -200,6 +200,28 @@ impl MicrolaunchApp {
                     }
 
                     if ui.button("Log in").clicked() {
+                        if data.platform == Platform::Steam {
+                            // Steamworks time!
+                            let auth_res = crate::auth::steam::init(&data.account_type);
+
+                            if let Err(x) = auth_res {
+                                // Oops
+                                println!("Steamworks initialise error");
+                                println!("{}", x);
+
+                                data.error_text = 
+                                    Some(format!(
+                                        "{}\n{}\n{}",
+                                        "Failed to initialise Steam!",
+                                        "Please make sure your Steam account owns FINAL FANTASY XIV Online,",
+                                        "you are logged into it, and Steam is running on your computer."
+                                    ));
+                                return;
+                            }
+
+                            return;
+                        }
+
                         let fucker = data.clone();
                         let rt = tokio::runtime::Builder::new_multi_thread()
                             .thread_name("microlaunch-login-worker")
