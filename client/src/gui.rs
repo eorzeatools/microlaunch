@@ -211,7 +211,7 @@ impl MicrolaunchApp {
 
                                 data.error_text = 
                                     Some(format!(
-                                        "{}\n{}\n{}",
+                                        "{}\n{}{}",
                                         "Failed to initialise Steam!",
                                         "Please make sure your Steam account owns FINAL FANTASY XIV Online,",
                                         "you are logged into it, and Steam is running on your computer."

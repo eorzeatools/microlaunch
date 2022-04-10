@@ -33,6 +33,10 @@ pub fn launch_game(data: &GameLoginData, language: ClientLanguage, unique_patch_
     argmap.insert("SYS.Region", &region_str);
     argmap.insert("language", &language_str);
 
+    if is_steam {
+        argmap.insert("IsSteam", "1");
+    }
+
     match strategy {
         GameLaunchStrategy::DirectLaunch => {
             if let Some(direct_config) = &crate::config::CONFIG.direct_launch {
@@ -45,7 +49,10 @@ pub fn launch_game(data: &GameLoginData, language: ClientLanguage, unique_patch_
                 println!("game args: {game_args}");
 
                 let mut command = std::process::Command::new(game_binary_path);
-                let command = command.args(game_args.split(" "));
+                let mut command = command.args(game_args.split(" "));
+                if is_steam {
+                    command = command.env("IS_FFXIV_LAUNCH_FROM_STEAM", "1");
+                }
                 println!("LAUNCHING DIRECTLY");
                 let cmd = command.spawn().expect("failed to launch executable!");
                 println!("Game PID = {}", cmd.id());
@@ -74,7 +81,10 @@ pub fn launch_game(data: &GameLoginData, language: ClientLanguage, unique_patch_
                 let command = command.arg(game_binary_path);
                 let command = command.args(game_args.split(" "));
                 let command = command.env("STEAM_COMPAT_DATA_PATH", &proton_config.compat_data_path);
-                let command = command.env("STEAM_COMPAT_CLIENT_INSTALL_PATH", &proton_config.compat_client_install_path);
+                let mut command = command.env("STEAM_COMPAT_CLIENT_INSTALL_PATH", &proton_config.compat_client_install_path);
+                if is_steam {
+                    command = command.env("IS_FFXIV_LAUNCH_FROM_STEAM", "1");
+                }
                 println!("LAUNCHING:");
                 println!("{:?} {:?}", command.get_program(), command.get_args());
                 let cmd = command
