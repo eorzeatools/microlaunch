@@ -58,6 +58,8 @@ pub fn encrypt(bytes: Vec<u8>, steam_time: u32) {
     }
 
     memory_stream.merge(garbage);
+
+    // TODO: Finish this algorithm with Andrea tomorrow
 }
 
 mod tests {
