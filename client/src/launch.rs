@@ -12,7 +12,7 @@ fn build_cli_args_for_game(map: HashMap::<&str, &str>) -> String {
     out
 }
 
-pub fn launch_game(data: &GameLoginData, language: ClientLanguage, unique_patch_id: &str) {
+pub fn launch_game(data: &GameLoginData, language: ClientLanguage, unique_patch_id: &str, is_steam: bool) {
     //let sid = &data.sid;
     let region = &data.region;
 

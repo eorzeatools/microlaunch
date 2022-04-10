@@ -31,7 +31,7 @@ struct LoginPhaseData {
 #[derive(Clone)]
 enum Phase {
     Login(LoginPhaseData),
-    ReadyToLaunch((GameLoginData, RegisterSessionResult)),
+    ReadyToLaunch((GameLoginData, RegisterSessionResult, Platform)),
     #[allow(dead_code)]
     Launching
 }
@@ -106,7 +106,7 @@ impl epi::App for MicrolaunchApp {
 
 impl MicrolaunchApp {
     fn do_readyui(&mut self, ctx: &egui::Context, _frame: &epi::Frame, phase: &mut Phase) {
-        if let Phase::ReadyToLaunch((data, register)) = phase {
+        if let Phase::ReadyToLaunch((data, register, steam)) = phase {
             if let RegisterSessionResult::Ok(register_token) = register {
                 CentralPanel::default()
                     .frame(Frame::none())
@@ -131,7 +131,7 @@ impl MicrolaunchApp {
                         ui.label(format!("region: {:?}", data.region));
                         if ui.button("launch the game!").clicked() {
                             // LAUNCH!
-                            crate::launch::launch_game(data, ClientLanguage::English, register_token);
+                            crate::launch::launch_game(data, ClientLanguage::English, register_token, *steam == Platform::Steam);
                         }
                     })
                 });
@@ -232,7 +232,7 @@ impl MicrolaunchApp {
                                         data.error_text = Some("Boot patch is required! microlaunch does not currently do this, sorry!".into());
                                     },
                                 }
-                                *NEXT_PHASE.lock() = Some(Box::new(Phase::ReadyToLaunch((ldata, register))));
+                                *NEXT_PHASE.lock() = Some(Box::new(Phase::ReadyToLaunch((ldata, register, data.platform))));
                             },
                             GameLoginResult::SteamLinkRequired => {
                                 data.error_text = Some("Steam link required - please link your Square Enix account to Steam through Windows".into());

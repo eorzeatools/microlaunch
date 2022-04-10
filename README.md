@@ -7,6 +7,9 @@ XIVLauncher doesn't work for my incredibly fringe use-case.
 ## Who is this for?
 [Myself](https://kagamine-r.in).
 
+## How to compile?
+See [BUILDING.md](/BUILDING.md).
+
 ## How do you use it?
 Documentation, as well as the tool in general, is an extreme work in progress.  
 Please check back later.

@@ -11,7 +11,7 @@ use itertools::Itertools;
 
 mod steam;
 
-#[derive(Hash, PartialEq, Eq, Clone)]
+#[derive(Hash, PartialEq, Eq, Clone, Copy)]
 #[repr(i32)]
 pub enum Platform {
     SqexStore = 0,
