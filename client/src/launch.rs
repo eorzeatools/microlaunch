@@ -1,7 +1,7 @@
 // Launcher module
 // This opens the game lol
 
-use std::{collections::HashMap, sync::Arc};
+use std::collections::HashMap;
 use crate::{auth::{ClientLanguage, GameLoginData}, config::GameLaunchStrategy, integrity::{Repository, RepositoryId}};
 
 fn build_cli_args_for_game(map: HashMap::<&str, &str>) -> String {

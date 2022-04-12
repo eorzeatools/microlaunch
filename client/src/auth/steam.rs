@@ -1,12 +1,12 @@
 use parking_lot::Mutex;
-
+use steamworks::AuthTicket;
 use crate::steamworks::SteamworksAppid;
-
 use super::AccountType;
 
 pub struct SteamTicket {
     pub text: String,
-    pub length: i32
+    pub length: usize,
+    pub steamworks_ticket: AuthTicket
 }
 
 lazy_static::lazy_static! {
@@ -29,4 +29,19 @@ pub fn init(acc_type: &AccountType) -> Result<(), steamworks::SteamError> {
     *STEAM.lock() = Box::new(Some(client));
 
     Ok(())
+}
+
+pub fn get_ticket() -> SteamTicket {
+    if let Some(steam) = STEAM.lock().as_ref() {
+        let steam_raw = steam.user().authentication_session_ticket();
+        let time = crate::steamworks::get_steam_server_time(steam);
+        let (crypt, length) = sqexcrypt::enc::encrypt(steam_raw.1, time);
+        SteamTicket {
+            steamworks_ticket: steam_raw.0,
+            text: crypt,
+            length
+        }
+    } else {
+        panic!("get_ticket:: Steamworks not initialised!");
+    }
 }

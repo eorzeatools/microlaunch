@@ -22,3 +22,4 @@ sha2 = "0.10.2"
 tokio = {version = "1.17.0", features = ["full"]}
 toml = "0.5.8"
 steamworks = {path = "../steamworks-rs"}
+sqexcrypt = {path = "../sqexcrypt"}

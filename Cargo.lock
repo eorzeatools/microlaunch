@@ -305,6 +305,7 @@ dependencies = [
  "ring",
  "serde",
  "sha2",
+ "sqexcrypt",
  "steamworks",
  "tokio",
  "toml",
