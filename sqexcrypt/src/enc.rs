@@ -9,17 +9,18 @@
 // A giant thank you to Andrea @hikari_no_yume
 // for helping me port this shitfest from C# to Rust.
 
-use crate::{memorystream::MemoryStream, sqexrand::Sqexrand};
+use crate::{memorystream::MemoryStream, sqexrand::Sqexrand, ecb::Ecb};
 
 const SQEX_FUCKED_ALPHABET: &'static str = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_";
 
-macro_rules! debug_write_awful {
-    ($x:ident) => {
-        std::fs::write::<String, _>(stringify!($x).to_owned() + ".txt", data_encoding::HEXUPPER.encode(&$x)).unwrap();
-    }
+fn to_fucked_se_b64(bytes: Vec<u8>) -> String {
+    data_encoding::BASE64.encode(&bytes)
+        .replace("+", "-")
+        .replace("/", "_")
+        .replace("=", "*")
 }
 
-pub fn encrypt(bytes: Vec<u8>, steam_time: u32) {
+pub fn encrypt(bytes: Vec<u8>, steam_time: u32) -> (String, usize) {
     let mut steam_time = steam_time;
     steam_time -= 5;
     steam_time -= steam_time % 60;
@@ -75,6 +76,30 @@ pub fn encrypt(bytes: Vec<u8>, steam_time: u32) {
     final_bytes[1] = t;
 
     let key_bytes = blowfish_key.as_bytes();
+
+    let mut bfish = blowfish::Blowfish::bc_init_state();
+    bfish.bc_expand_key(key_bytes);
+
+    let mut ecb = Ecb::from_plaintext(final_bytes);
+    let crypt = ecb.encrypt(&mut bfish);
+
+    let crypt_bytes = crypt.into_bytes();
+
+    let fucked_b64 = to_fucked_se_b64(crypt_bytes);
+
+    const CHUNK_SIZE: usize = 300;
+    let fucked2 = fucked_b64.clone().into_bytes();
+    let parts = fucked2.chunks(CHUNK_SIZE);
+
+    let final_string = parts.collect::<Vec<&[u8]>>();
+
+    let final_parts = final_string.len();
+    let really_final_string = final_string.join(&(',' as u8));
+
+    let really_really_final_string = String::from_utf8(really_final_string).unwrap();
+    let real_len = really_really_final_string.len();
+
+    (really_really_final_string, real_len - (final_parts - 1))
 }
 
 mod tests {

@@ -6,4 +6,6 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+blowfish = { version = "0.9.1", features = ["bcrypt"] }
 data-encoding = "2.3.2"
+generic-array = "0.14.5"
