@@ -1,5 +1,4 @@
-use blowfish::cipher::{BlockEncryptMut};
-use generic_array::arr;
+use generic_array::{arr, typenum::U8};
 
 use crate::memorystream::MemoryStream;
 
@@ -12,7 +11,9 @@ impl Ecb {
         Self(plain)
     }
 
-    pub fn encrypt(&mut self, bfish: &mut blowfish::Blowfish) -> MemoryStream {
+    pub fn encrypt<T>(&mut self, bfish: &mut T) -> MemoryStream
+        where T: blowfish::cipher::BlockEncryptMut<BlockSize=U8>
+    {
         let block_count = self.0.len() / 8;
         let mut output_blocks = MemoryStream::new();
         for block_num in 0..block_count {
