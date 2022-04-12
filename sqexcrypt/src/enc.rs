@@ -13,6 +13,12 @@ use crate::{memorystream::MemoryStream, sqexrand::Sqexrand};
 
 const SQEX_FUCKED_ALPHABET: &'static str = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_";
 
+macro_rules! debug_write_awful {
+    ($x:ident) => {
+        std::fs::write::<String, _>(stringify!($x).to_owned() + ".txt", data_encoding::HEXUPPER.encode(&$x)).unwrap();
+    }
+}
+
 pub fn encrypt(bytes: Vec<u8>, steam_time: u32) {
     let mut steam_time = steam_time;
     steam_time -= 5;
@@ -59,12 +65,24 @@ pub fn encrypt(bytes: Vec<u8>, steam_time: u32) {
 
     memory_stream.merge(garbage);
 
-    
+    memory_stream.merge_at(fucked_sum.to_le_bytes(), 0);
+
+    let mut final_bytes = memory_stream.into_bytes();
+
+    // Horrible byte swap
+    let t = final_bytes[0].clone();
+    final_bytes[0] = final_bytes[1];
+    final_bytes[1] = t;
+
+    let key_bytes = blowfish_key.as_bytes();
 }
 
 mod tests {
     #[test]
     pub fn test_crypt() {
-
+        let test_bytes =
+            data_encoding::HEXLOWER.decode(include_str!("test_ticket.txt").to_lowercase().as_bytes());
+        let test_time = 1649762720_u32;
+        let _crypt = super::encrypt(test_bytes.unwrap(), test_time);
     }
 }

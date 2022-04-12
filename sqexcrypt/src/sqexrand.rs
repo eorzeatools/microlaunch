@@ -17,7 +17,7 @@ impl Sqexrand {
     }
 
     pub fn next(&mut self) -> u32 {
-        self.seed = 0x343fd * self.seed + 0x269ec3;
+        self.seed = 0x343fd_u32.wrapping_mul(self.seed) + 0x269ec3_u32;
         return ((self.seed >> 16) & 0xFFFF) & 0x7FFF;
     }
 }
