@@ -16,7 +16,6 @@ pub fn launch_game(data: &GameLoginData, language: ClientLanguage, unique_patch_
     //let sid = &data.sid;
     let region = &data.region;
 
-    // TODO: steam
     let strategy = &crate::config::CONFIG.launcher.strategy;
     println!("== LAUNCHING THE GAME ==");
     println!("selected strategy: {:?}", strategy);

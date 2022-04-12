@@ -3,7 +3,7 @@ use parking_lot::Mutex;
 use eframe::{egui, epi};
 use egui::*;
 
-use crate::{auth::{AccountType, Platform, GameLoginResult, GameLoginData, ClientLanguage}, session::RegisterSessionResult};
+use crate::{auth::{AccountType, Platform, GameLoginResult, GameLoginData, ClientLanguage, steam::SteamTicket, self}, session::RegisterSessionResult};
 
 pub struct MicrolaunchApp {
     title: Option<String>
@@ -200,6 +200,8 @@ impl MicrolaunchApp {
                     }
 
                     if ui.button("Log in").clicked() {
+                        let mut steam_ticket: Option<SteamTicket> = None;
+
                         if data.platform == Platform::Steam {
                             // Steamworks time!
                             let auth_res = crate::auth::steam::init(&data.account_type);
@@ -219,12 +221,7 @@ impl MicrolaunchApp {
                                 return;
                             }
 
-                            if let Some(steam) = crate::auth::steam::STEAM.lock().as_ref() {
-                                let ticket = steam.user().authentication_session_ticket();
-                                println!("{:?}", data_encoding::HEXLOWER.encode(&ticket.1));
-                            }
-
-                            return;
+                            steam_ticket = Some(auth::steam::get_ticket())
                         }
 
                         let fucker = data.clone();
@@ -241,7 +238,7 @@ impl MicrolaunchApp {
                                 fucker.account_type.clone() == AccountType::FreeTrial,
                                 fucker.platform.clone() == Platform::Steam,
                                 crate::auth::GameRegion::Europe,
-                                None
+                                steam_ticket
                             ).await
                         });
                         match a {
@@ -263,6 +260,9 @@ impl MicrolaunchApp {
                             },
                             GameLoginResult::SteamLinkRequired => {
                                 data.error_text = Some("Steam link required - please link your Square Enix account to Steam through Windows".into());
+                            },
+                            GameLoginResult::WrongSteamAccount => {
+                                data.error_text = Some("Your Steam client is not logged into the right Steam account for this Square Enix ID. Please make sure you're logged into Steam with the right account.".into());
                             },
                             GameLoginResult::Error => {
                                 data.error_text = Some("An error has occurred - username/password invalid?".into());

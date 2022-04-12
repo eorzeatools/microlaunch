@@ -117,6 +117,7 @@ impl ClientLanguage {
 pub enum GameLoginResult {
     Successful(GameLoginData),
     SteamLinkRequired,
+    WrongSteamAccount,
     Error
 }
 
@@ -126,6 +127,7 @@ pub struct GameLoginData {
     pub region: GameRegion,
     pub max_expansion: Expansion,
     pub playable: bool,
+    pub steam_username: Option<String>
 }
 
 pub async fn login_oauth(
@@ -150,7 +152,7 @@ pub async fn login_oauth(
     let req = reqwest::Client::builder().user_agent(&format!("SQEXAuthor/2.0.0(Windows 6.2; ja-JP; {})", generate_computer_id()));
     let client = req.build().unwrap();
 
-    let csrf = {
+    let (csrf, steam_user) = {
         let a = {
             let request = client.request(reqwest::Method::GET, top_page_url.clone());
             let request = request.header("Accept",
@@ -174,13 +176,29 @@ pub async fn login_oauth(
             panic!("invalid resp - restartUp but not steam wtf");
         }
 
+        let steam_username = if steam {
+            let steam_re = Regex::new(r#"<input name="sqexid" type="hidden" value="(.*)"/>"#).unwrap();
+            let steam_res = steam_re.captures(top_text.as_str().clone());
+
+            if let None = steam_res {
+                panic!("Steam = true but could not get Steam username. What?");
+            }
+
+            Some(steam_res.unwrap().get(1).unwrap().as_str().to_owned())
+        } else {
+            None
+        };
+
         let csrf_re = Regex::new(r#"\t<\s*input .* name="_STORED_" value="(:?.*)">"#).unwrap();
         let csrf_res = csrf_re.captures(top_text.as_str());
         let token = csrf_res.expect("fuck square enix").get(1).unwrap();
-        token.clone().as_str().to_owned()
+        (token.clone().as_str().to_owned(), steam_username)
     };
 
     println!("got csrf token: {}", csrf);
+    if steam {
+        println!("got steam user: {}", &steam_user.as_ref().unwrap());
+    }
 
     // Actually make the oauth login request
 
@@ -194,6 +212,16 @@ pub async fn login_oauth(
     let req = req.header("Connection", "Keep-Alive");
     let req = req.header("Cache-Control", "no-cache");
     let req = req.header("Cookie", r#"_rsid="""#);
+
+    let true_sqexid = if steam {
+        if username.to_lowercase() != steam_user.as_ref().unwrap().to_lowercase() {
+            return GameLoginResult::WrongSteamAccount;
+        }
+
+        steam_user.as_ref().unwrap()
+    } else {
+        username.clone()
+    };
     
     let mut body_map = HashMap::new();
     body_map.insert("_STORED_", csrf);
@@ -209,7 +237,11 @@ pub async fn login_oauth(
     println!("got login response");
 
     let resp_regex = regex::Regex::new(r#"window.external.user\("login=auth,ok,(.*)"\);"#).unwrap();
-    let re_match = resp_regex.captures(&f).expect("no match? (bad login?)");
+    let re_match = resp_regex.captures(&f);
+    if let None = re_match {
+        return GameLoginResult::Error;
+    }
+    let re_match = re_match.unwrap();
     let login_args = re_match.get(1).expect("no match? (get(1) fail)").as_str();
     println!("login arguments are: {login_args}");
 
@@ -224,7 +256,8 @@ pub async fn login_oauth(
         playable: keys.get("playable") == Some(&"1"),
         sid: (*keys.get("sid").unwrap()).into(),
         max_expansion: (*keys.get("maxex").unwrap()).parse::<i32>().unwrap().try_into().unwrap(),
-        region: (*keys.get("region").unwrap()).parse::<i32>().unwrap().try_into().unwrap()
+        region: (*keys.get("region").unwrap()).parse::<i32>().unwrap().try_into().unwrap(),
+        steam_username: steam_user
     };
 
     GameLoginResult::Successful(data)
