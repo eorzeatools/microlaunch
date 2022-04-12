@@ -106,7 +106,7 @@ mod tests {
     #[test]
     pub fn test_crypt() {
         let test_bytes =
-            data_encoding::HEXLOWER.decode(include_str!("test_ticket.txt").to_lowercase().as_bytes());
+            data_encoding::HEXLOWER.decode(String::from_utf8(std::fs::read("src/test_ticket.txt").unwrap()).unwrap().to_lowercase().as_bytes());
         let test_time = 1649762720_u32;
         let _crypt = super::encrypt(test_bytes.unwrap(), test_time);
     }
