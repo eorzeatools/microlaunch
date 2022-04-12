@@ -25,6 +25,10 @@ pub struct LauncherConfig {
     // REQUIRED for "integrity" checking
     // (aka Square Enix is stupid again)
     pub game_path: String,
+
+    // Command to run before the game
+    // e.g. mangohud
+    pub prefix_command: Option<String>
 }
 
 #[derive(Deserialize)]

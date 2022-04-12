@@ -1,7 +1,7 @@
 // Launcher module
 // This opens the game lol
 
-use std::collections::HashMap;
+use std::{collections::HashMap, sync::Arc};
 use crate::{auth::{ClientLanguage, GameLoginData}, config::GameLaunchStrategy, integrity::{Repository, RepositoryId}};
 
 fn build_cli_args_for_game(map: HashMap::<&str, &str>) -> String {
@@ -76,8 +76,23 @@ pub fn launch_game(data: &GameLoginData, language: ClientLanguage, unique_patch_
                 let game_args = build_cli_args_for_game(argmap);
                 println!("game args: {game_args}");
                 
-                let mut command = std::process::Command::new(proton_binary_path);
-                let command = command.arg("run");
+                // Oh this sucks
+                let mut launch_cmd = if let None = &crate::config::CONFIG.launcher.prefix_command {
+                    std::process::Command::new(&proton_binary_path)
+                } else if let Some(pre_command) = &crate::config::CONFIG.launcher.prefix_command {
+                    std::process::Command::new(pre_command)
+                } else {
+                    unreachable!()
+                };
+
+                let command = if let Some(_) = &crate::config::CONFIG.launcher.prefix_command {
+                    launch_cmd.arg(proton_binary_path).arg("run")
+                } else if let None = &crate::config::CONFIG.launcher.prefix_command {
+                    launch_cmd.arg("run")
+                } else {
+                    unreachable!()
+                };
+
                 let command = command.arg(game_binary_path);
                 let command = command.args(game_args.split(" "));
                 let command = command.env("STEAM_COMPAT_DATA_PATH", &proton_config.compat_data_path);
@@ -85,6 +100,7 @@ pub fn launch_game(data: &GameLoginData, language: ClientLanguage, unique_patch_
                 if is_steam {
                     command = command.env("IS_FFXIV_LAUNCH_FROM_STEAM", "1");
                 }
+
                 println!("LAUNCHING:");
                 println!("{:?} {:?}", command.get_program(), command.get_args());
                 let cmd = command

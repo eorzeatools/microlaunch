@@ -219,6 +219,11 @@ impl MicrolaunchApp {
                                 return;
                             }
 
+                            if let Some(steam) = crate::auth::steam::STEAM.lock().as_ref() {
+                                let ticket = steam.user().authentication_session_ticket();
+                                println!("{:?}", data_encoding::HEXLOWER.encode(&ticket.1));
+                            }
+
                             return;
                         }
 
