@@ -1,6 +1,9 @@
 // Launcher module
 // This opens the game lol
 
+mod strategy;
+mod proton;
+
 use std::collections::HashMap;
 use crate::{auth::{ClientLanguage, GameLoginData}, config::GameLaunchStrategy, integrity::{Repository, RepositoryId}};
 
