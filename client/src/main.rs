@@ -124,7 +124,7 @@ fn main() {
 
     let persistent_ref = PERSISTENT.clone();
     let persistent = persistent_ref.lock();
-    if persistent.autologin {
+    if persistent.autologin && !cli.force_gui {
         // do autologin here!
         println!("Autologin mode enabled");
         do_autologin(&persistent);
