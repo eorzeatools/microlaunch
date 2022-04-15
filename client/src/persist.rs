@@ -121,42 +121,6 @@ pub fn write_persistent_data() {
     flush_persistent_data(&l).expect("failed to write persistent data to file");
 }
 
-mod tests {
-    #[test]
-    pub fn test_get_hwid() {
-        let hwid = super::get_actual_hwid();
-        println!("{}", data_encoding::HEXLOWER.encode(&hwid));
-    }
-
-    #[test]
-    pub fn test_persistent() {
-        super::init_persistent_data();
-    }
-
-    #[test]
-    pub fn test_encrypt() {
-        let data = super::EncryptedPersistentData {
-            autologin: true,
-            sqex_id: "penis".into(),
-            password: "thepenisman420".into(),
-            platform: crate::auth::Platform::Steam,
-            account_type: crate::auth::AccountType::Subscription
-        };
-        let encrypt = super::encrypt_persistent_data(&data);
-        println!("{}", encrypt);
-    }
-
-    #[test]
-    pub fn test_decrypt() {
-        let b64 = "JdMQj1bGZPLclUlb8fb3hldo/oUCEGZoO1RQ0rYznzLaZsWVG7m3Qf5cqSL93VWrA1oZ5w==";
-        let nonce = "d8dc83325fae274016f72f35";
-        // This test only works on my computer
-        // Too bad
-        let decrypt = super::decrypt_binary_data(nonce, b64);
-        println!("{:#?}", decrypt);
-    }
-}
-
 fn init_persistent_data() -> EncryptedPersistentData {
     // /*
     let path = get_encrypted_file_path();
