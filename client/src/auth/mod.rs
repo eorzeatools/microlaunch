@@ -6,19 +6,20 @@
 
 use std::collections::HashMap;
 use regex::Regex;
+use serde::{Serialize, Deserialize};
 use self::steam::SteamTicket;
 use itertools::Itertools;
 
 pub mod steam;
 
-#[derive(Hash, PartialEq, Eq, Clone, Copy)]
+#[derive(Hash, PartialEq, Eq, Clone, Copy, Debug, Serialize, Deserialize)]
 #[repr(i32)]
 pub enum Platform {
     SqexStore = 0,
     Steam = 1
 }
 
-#[derive(Hash, PartialEq, Eq, Clone)]
+#[derive(Hash, PartialEq, Eq, Clone, Debug, Serialize, Deserialize)]
 #[repr(i32)]
 pub enum AccountType {
     Subscription = 0,

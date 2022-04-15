@@ -3,16 +3,23 @@ use parking_lot::Mutex;
 use eframe::{egui, epi};
 use egui::*;
 
-use crate::{auth::{AccountType, Platform, GameLoginResult, GameLoginData, ClientLanguage, steam::SteamTicket, self}, session::RegisterSessionResult};
+use crate::{auth::{AccountType, Platform, GameLoginResult, GameLoginData, ClientLanguage, steam::SteamTicket, self}, session::RegisterSessionResult, persist::PERSISTENT};
+
+trait CustomWindowDrawable {
+    fn draw(&mut self, ctx: &egui::Context);
+    fn should_stay_open(&self) -> bool;
+}
 
 pub struct MicrolaunchApp {
-    title: Option<String>
+    title: Option<String>,
+    open_windows: Vec<Box<dyn CustomWindowDrawable>>
 }
 
 impl Default for MicrolaunchApp {
     fn default() -> Self {
         Self {
-            title: Some(format!("microlaunch ver.{} by rin", env!("CARGO_PKG_VERSION")))
+            title: Some(format!("microlaunch ver.{} by rin", env!("CARGO_PKG_VERSION"))),
+            open_windows: vec![]
         }
     }
 }
@@ -37,7 +44,7 @@ enum Phase {
 }
 
 struct State {
-    pub uuid: String
+    pub save_info: bool
 }
 
 lazy_static::lazy_static! {
@@ -47,7 +54,7 @@ lazy_static::lazy_static! {
 
     static ref STATE: Mutex<Box<State>> = {
         let st = State {
-            uuid: crate::auth::generate_computer_id()
+            save_info: false
         };
         Mutex::new(Box::new(st))
     };
@@ -65,6 +72,32 @@ lazy_static::lazy_static! {
     };
 }
 
+struct EncryptionDisclaimerWindow(bool);
+
+impl CustomWindowDrawable for EncryptionDisclaimerWindow {
+    fn draw(&mut self, ctx: &egui::Context) {
+        Window::new("warning!")
+            .id(Id::new("ulaunch-encryption-disclaimer-window"))
+            .title_bar(false)
+            .anchor(Align2::CENTER_CENTER, vec2(0.0, 0.0))
+            .show(ctx, |ui|
+        {
+            ui.heading("warning!");
+            ui.label("enabling this option will cause microlaunch to store your square enix username and password, for automatic login.");
+            ui.label("this data is stored in encrypted form, using the AES-128-GCM algorithm.");
+            ui.label("you will also lose access to microlaunch's GUI unless you launch the program with the `--gui` argument.");
+
+            if ui.button("OK, I understand").clicked() {
+                self.0 = false;
+            }
+        });
+    }
+
+    fn should_stay_open(&self) -> bool {
+        self.0
+    }
+}
+
 impl epi::App for MicrolaunchApp {
     fn setup(&mut self, ctx: &egui::Context, _frame: &epi::Frame, _storage: Option<&dyn epi::Storage>) {
         ctx.set_pixels_per_point(1.2);
@@ -79,6 +112,20 @@ impl epi::App for MicrolaunchApp {
     }
 
     fn update(&mut self, ctx: &egui::Context, frame: &epi::Frame) {
+        for i in self.open_windows.iter_mut() {
+            i.draw(ctx);
+        }
+        
+        let all_to_be_closed = self.open_windows
+            .iter()
+            .enumerate()
+            .filter(|(_, x)| !x.should_stay_open())
+            .map(|(i, _)| i)
+            .collect::<Vec<usize>>();
+        for i in all_to_be_closed {
+            self.open_windows.remove(i);
+        }
+
         if let Some(x) = NEXT_PHASE.lock().as_ref() {
             *PHASE.lock().as_mut() = *x.clone();
         }
@@ -88,15 +135,6 @@ impl epi::App for MicrolaunchApp {
             mut y @ Phase::ReadyToLaunch { .. } => self.do_readyui(ctx, frame, &mut y),
             _ => todo!()
         }
-
-        Window::new("debug stuff")
-            .id(Id::new("ul-debug-window"))
-            .show(ctx, |ui|
-        {
-            let state = STATE.lock();
-
-            ui.label(format!("computer unique SE-UUID: {}", state.uuid));
-        });
     }
 
     fn name(&self) -> &str {
@@ -194,6 +232,17 @@ impl MicrolaunchApp {
                             ui.selectable_value(&mut data.account_type, AccountType::FreeTrial,
                                 "Free trial");
                         });
+
+                    {
+                        let mut state = STATE.lock();
+                        let resp = ui.add(Checkbox::new(&mut state.save_info, "Save information"));
+
+                        if resp.clicked() && state.save_info {
+                            // Display warning
+                            let window = Box::new(EncryptionDisclaimerWindow(true));
+                            self.open_windows.push(window);
+                        }
+                    }
                     
                     if let Some(text) = &data.error_text {
                         ui.colored_label(egui::Color32::RED, text);
@@ -243,6 +292,23 @@ impl MicrolaunchApp {
                         });
                         match a {
                             GameLoginResult::Successful(ldata) => {
+                                // Save info
+                                {
+                                    let state = STATE.lock();
+                                    let fucking_deadlocks = state.save_info;
+                                    drop(state);
+                                    if fucking_deadlocks {
+                                        let mut persistent = PERSISTENT.lock();
+                                        persistent.sqex_id = data.username.clone();
+                                        persistent.password = data.password.clone();
+                                        persistent.platform = data.platform.clone();
+                                        persistent.account_type = data.account_type.clone();
+                                        persistent.autologin = true;
+                                        drop(persistent);
+                                        crate::persist::write_persistent_data();
+                                    }
+                                }
+
                                 let d2 = ldata.clone();
                                 let register = rt.block_on(async move {
                                     crate::session::register_session(&d2).await

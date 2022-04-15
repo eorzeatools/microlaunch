@@ -4,26 +4,31 @@
 // THIS MODULE STORES YOUR SQUARE ENIX PASSWORD AND TOKENS.
 // IT IS STORED IN ENCRYPTED FORM, BUT IT IS STILL STORED.
 
+use std::sync::Arc;
 use std::{path::PathBuf, time::SystemTime};
 
 use aes_gcm::{Key, Aes128Gcm, Nonce};
 use aes_gcm::NewAead;
 use aes_gcm::aead::Aead;
+use parking_lot::Mutex;
 use rand::{SeedableRng, RngCore};
 use rand_chacha::ChaCha20Rng;
 use serde::{Serialize, Deserialize};
+use crate::auth::{AccountType, Platform};
 
 lazy_static::lazy_static! {
-    pub static ref PERSISTENT: EncryptedPersistentData = {
-        init_persistent_data()
+    pub static ref PERSISTENT: Arc<Mutex<EncryptedPersistentData>> = {
+        Arc::new(Mutex::new(init_persistent_data()))
     };
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct EncryptedPersistentData {
     pub autologin: bool,
     pub sqex_id: String,
     pub password: String,
+    pub platform: Platform,
+    pub account_type: AccountType
 }
 
 fn get_secure_rng() -> ChaCha20Rng {
@@ -110,6 +115,12 @@ fn flush_persistent_data(data: &EncryptedPersistentData) -> std::io::Result<()> 
     std::fs::write(file_location, encrypted_data)
 }
 
+pub fn write_persistent_data() {
+    let r = PERSISTENT.clone();
+    let l = r.lock();
+    flush_persistent_data(&l).expect("failed to write persistent data to file");
+}
+
 mod tests {
     #[test]
     pub fn test_get_hwid() {
@@ -127,7 +138,9 @@ mod tests {
         let data = super::EncryptedPersistentData {
             autologin: true,
             sqex_id: "penis".into(),
-            password: "thepenisman420".into()
+            password: "thepenisman420".into(),
+            platform: crate::auth::Platform::Steam,
+            account_type: crate::auth::AccountType::Subscription
         };
         let encrypt = super::encrypt_persistent_data(&data);
         println!("{}", encrypt);
@@ -153,7 +166,9 @@ fn init_persistent_data() -> EncryptedPersistentData {
         let data = EncryptedPersistentData {
             autologin: false,
             sqex_id: "".into(),
-            password: "".into()
+            password: "".into(),
+            platform: Platform::SqexStore,
+            account_type: AccountType::Subscription
         };
 
         flush_persistent_data(&data).expect("Failed to save encrypted data file!");
