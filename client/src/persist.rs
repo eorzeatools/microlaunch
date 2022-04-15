@@ -122,7 +122,6 @@ pub fn write_persistent_data() {
 }
 
 fn init_persistent_data() -> EncryptedPersistentData {
-    // /*
     let path = get_encrypted_file_path();
     std::fs::create_dir_all(path.parent().unwrap()).unwrap();
     if !path.exists() {
@@ -147,7 +146,6 @@ fn init_persistent_data() -> EncryptedPersistentData {
 
         decrypt_binary_data(nonce, binary_data)
     }
-    // */
 }
 
 fn get_default_encrypted_path() -> PathBuf {
