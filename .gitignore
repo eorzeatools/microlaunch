@@ -4,3 +4,4 @@ ffxiv_dx11.dxvk-cache
 steam_appid.txt
 sqexcrypt/src/test_ticket.txt
 sqexcrypt/*.txt
+private/

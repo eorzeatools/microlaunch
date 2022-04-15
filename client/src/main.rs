@@ -6,6 +6,7 @@ mod integrity;
 mod session;
 mod other;
 mod steamworks;
+mod persist;
 
 fn main() {
     let app = gui::MicrolaunchApp::default();

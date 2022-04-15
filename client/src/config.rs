@@ -58,12 +58,27 @@ pub struct ExperimentalConfig {
     // touch unless you know what you're doing
 
     // Randomly tweaks the computer identifier
-    pub tweak_computer_id_randomly: bool
+    #[serde(default = "bool::default")] // false
+    pub tweak_computer_id_randomly: bool,
+
+    // Path to the encrypted data file
+    // Used to store your SEID and password
+    // alongside login tokens and other stuff
+    // By default, this is in ~/.config/microlaunch
+    pub encrypted_data_path: Option<String>,
 }
 
 lazy_static::lazy_static! {
     pub static ref CONFIG: MicrolaunchConfig = {
-        let cfg_str = std::fs::read_to_string("microlaunch.toml").expect("could not open microlaunch.toml");
-        toml::from_str::<MicrolaunchConfig>(&cfg_str).expect("bad config!")
+        if cfg!(test) {
+            let mut d = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+            d.pop();
+            d.push("microlaunch.toml");
+            let cfg_str = std::fs::read_to_string(d).expect("could not open microlaunch.toml");
+            toml::from_str::<MicrolaunchConfig>(&cfg_str).expect("bad config!")
+        } else {
+            let cfg_str = std::fs::read_to_string("microlaunch.toml").expect("could not open microlaunch.toml");
+            toml::from_str::<MicrolaunchConfig>(&cfg_str).expect("bad config!")
+        }
     };
 }
