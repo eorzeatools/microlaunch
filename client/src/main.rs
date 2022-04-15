@@ -38,7 +38,7 @@ fn run_gui() {
 async fn do_full_login_process(data: EncryptedPersistentData) {
     let on_steam = data.platform == Platform::Steam;
 
-    print!("Doing full login process for {}", data.sqex_id);
+    println!("Doing full login process for {}", data.sqex_id);
 
     if on_steam {
         let steam_res = auth::steam::init(&data.account_type);
