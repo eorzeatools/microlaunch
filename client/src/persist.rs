@@ -104,6 +104,12 @@ fn encrypt_persistent_data(data: &EncryptedPersistentData) -> String {
     out
 }
 
+fn flush_persistent_data(data: &EncryptedPersistentData) -> std::io::Result<()> {
+    let file_location = get_encrypted_file_path();
+    let encrypted_data = encrypt_persistent_data(data);
+    std::fs::write(file_location, encrypted_data)
+}
+
 mod tests {
     #[test]
     pub fn test_get_hwid() {
@@ -149,6 +155,8 @@ fn init_persistent_data() -> EncryptedPersistentData {
             sqex_id: "".into(),
             password: "".into()
         };
+
+        flush_persistent_data(&data).expect("Failed to save encrypted data file!");
 
         data
     } else {
