@@ -14,6 +14,11 @@ See [BUILDING.md](/BUILDING.md).
 Documentation, as well as the tool in general, is an extreme work in progress.  
 Please check back later.
 
+## Credits and special thanks
+- [FINAL FANTASY XIV](https://finalfantasyxiv.com) by SQUARE ENIX CO., LTD. Thanks for the game!
+- [XIVLauncher](https://github.com/goatcorp/FFXIVQuickLauncher) and [Dalamud](https://github.com/goatcorp/Dalamud) by [goatcorp](https://github.com/goatcorp). Without XIVLauncher and Dalamud, this project would never have gotten off the ground. Thank you so much! You're the reason why this is possible.
+- microlaunch developed by [Rin](https://twitter.com/lostkagamine).
+
 ## Disclaimer
 FINAL FANTASY XIV Online © 2010-2022 SQUARE ENIX CO., LTD., all rights reserved.  
 *I am not affiliated with SQUARE ENIX CO., LTD. in any way.*  
