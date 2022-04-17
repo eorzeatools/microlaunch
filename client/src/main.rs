@@ -50,6 +50,7 @@ async fn do_full_login_process(data: EncryptedPersistentData) {
                 println!("-- ERROR: Ensure Steam is running on your computer, and you're");
                 println!("-- ERROR: logged into the right account. Details follow:");
                 println!("{:#?}", x);
+                std::process::exit(1);
             },
         }
     }
