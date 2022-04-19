@@ -11,8 +11,8 @@ XIVLauncher doesn't work for my incredibly fringe use-case.
 See [BUILDING.md](/BUILDING.md).
 
 ## How do you use it?
-Documentation, as well as the tool in general, is an extreme work in progress.  
-Please check back later.
+See [USAGE.md](/USAGE.md).  
+*DISCLAIMER: Documentation, as well as the tool in general, is an extreme work in progress.*
 
 ## Credits and special thanks
 - [FINAL FANTASY XIV](https://finalfantasyxiv.com) by SQUARE ENIX CO., LTD. Thanks for the game!
