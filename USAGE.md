@@ -21,4 +21,5 @@
 ## Step 4 (optional): Automatic login
 - Once you have logged in at least once with "Save information" checked, the program will store your username and password *in encrypted form* at `~/.config/microlaunch`.
 - To automatically log in, simply run `client` (or `cargo r -q -p client --`).
+- To get back to the GUI, run `client --gui` (or `cargo r -q -p client -- --gui`).
 - You will see a bunch of terminal output, and after a while, FINAL FANTASY XIV should start!
