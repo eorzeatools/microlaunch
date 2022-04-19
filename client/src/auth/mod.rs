@@ -196,7 +196,7 @@ pub async fn login_oauth(
         (token.clone().as_str().to_owned(), steam_username)
     };
 
-    println!("got csrf token: {}", csrf);
+    println!("got csrf token: {}...", &csrf[..20]);
     if steam {
         println!("got steam user: {}", &steam_user.as_ref().unwrap());
     }
