@@ -3,7 +3,7 @@
 
 mod dalamud;
 
-use std::{collections::HashMap, process::Stdio, borrow::Borrow};
+use std::{collections::HashMap, process::Stdio, borrow::Borrow, path::Path};
 use crate::{auth::{ClientLanguage, GameLoginData}, config::GameLaunchStrategy, integrity::{Repository, RepositoryId}};
 
 fn build_cli_args_for_game(map: HashMap::<&str, &str>) -> String {
@@ -12,6 +12,10 @@ fn build_cli_args_for_game(map: HashMap::<&str, &str>) -> String {
         out.push_str(&format!(" {k}={v}"))
     });
     out
+}
+
+fn to_z_path(path: &std::path::PathBuf) -> String {
+    "Z:".to_owned() + &path.to_string_lossy().replace("/", r#"\"#)
 }
 
 pub fn launch_game(data: &GameLoginData, language: ClientLanguage, unique_patch_id: &str, is_steam: bool) {
@@ -78,9 +82,20 @@ pub fn launch_game(data: &GameLoginData, language: ClientLanguage, unique_patch_
                 println!("FFXIVGame version {game_version}");
                 let game_args = build_cli_args_for_game(argmap);
                 println!("game args: {game_args}");
+
+                let use_dalamud = if let Some(experimental) = &crate::config::CONFIG.experimental {
+                    experimental.use_dalamud
+                } else {
+                    false
+                };
+
+                let wineprefix = std::path::Path::new(&proton_config.compat_data_path).join("pfx");
                 
                 // Oh this sucks
-                let mut launch_cmd = if let None = &crate::config::CONFIG.launcher.prefix_command {
+                // Oh this is about to suck even more
+                let mut launch_cmd = if use_dalamud {
+                    std::process::Command::new(&wine64_bin_path)
+                } else if let None = &crate::config::CONFIG.launcher.prefix_command {
                     std::process::Command::new(&wine64_bin_path)
                 } else if let Some(pre_command) = &crate::config::CONFIG.launcher.prefix_command {
                     std::process::Command::new(pre_command)
@@ -88,7 +103,12 @@ pub fn launch_game(data: &GameLoginData, language: ClientLanguage, unique_patch_
                     unreachable!()
                 };
 
-                let command = if let Some(_) = &crate::config::CONFIG.launcher.prefix_command {
+                let mut command = if use_dalamud {
+                    launch_cmd.arg(
+                        "dalamud/DalamudWineHelper.exe"
+                    )
+                        .arg(to_z_path(&Path::new(&proton_config.game_binary_path).to_path_buf()))
+                } else if let Some(_) = &crate::config::CONFIG.launcher.prefix_command {
                     launch_cmd.arg(&wine64_bin_path)
                 } else if let None = &crate::config::CONFIG.launcher.prefix_command {
                     &mut launch_cmd
@@ -96,7 +116,9 @@ pub fn launch_game(data: &GameLoginData, language: ClientLanguage, unique_patch_
                     unreachable!()
                 };
 
-                let command = command.arg(game_binary_path);
+                if !use_dalamud {
+                    command = command.arg(game_binary_path);
+                }
                 let command = command.args(game_args.split(" "));
                 let command = command.env("STEAM_COMPAT_DATA_PATH", &proton_config.compat_data_path);
                 let mut command = command.env("STEAM_COMPAT_CLIENT_INSTALL_PATH", &proton_config.compat_client_install_path);
@@ -104,7 +126,6 @@ pub fn launch_game(data: &GameLoginData, language: ClientLanguage, unique_patch_
                     command = command.env("IS_FFXIV_LAUNCH_FROM_STEAM", "1");
                 }
 
-                let wineprefix = std::path::Path::new(&proton_config.compat_data_path).join("pfx");
                 command = command.env("WINEPREFIX", wineprefix.as_os_str());
                 command = command.env("WINEDEBUG", "-all"); // Noisy!!!
 
