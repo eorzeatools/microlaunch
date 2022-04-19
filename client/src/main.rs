@@ -21,6 +21,9 @@ mod persist;
 struct CommandLine {
     #[clap(long="--gui", help="Forces GUI mode.")]
     force_gui: bool,
+
+    #[clap(long="--fake-login", help="Fake login. !! DO NOT TOUCH THIS OPTION IF YOU ARE NOT A DEVELOPER !!")]
+    fake_login: bool,
 }
 
 fn run_gui() {
@@ -122,6 +125,26 @@ fn do_autologin(data_ref: &EncryptedPersistentData) {
 
 fn main() {
     let cli = CommandLine::parse();
+
+    let fake_login_cfg = if let Some(e) = &config::CONFIG.experimental {
+        e.fake_login
+    } else {
+        false
+    };
+    if cli.fake_login || fake_login_cfg {
+        // Fake a login here
+        println!("FAKE LOGIN - I trust you know what you're doing.");
+        let ldata = auth::GameLoginData {
+            sid: "0".into(),
+            region: auth::GameRegion::Europe,
+            max_expansion: auth::Expansion::Endwalker,
+            playable: true,
+            steam_username: None,
+        };
+        launch::launch_game(&ldata, auth::ClientLanguage::English, "0", false);
+
+        return;
+    }
 
     let persistent_ref = PERSISTENT.clone();
     let persistent = persistent_ref.lock();

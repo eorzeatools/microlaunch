@@ -393,7 +393,7 @@ dependencies = [
 
 [[package]]
 name = "client"
-version = "1.1.1"
+version = "1.2.0-UNSTABLE"
 dependencies = [
  "aes-gcm",
  "bincode",
@@ -412,6 +412,7 @@ dependencies = [
  "reqwest",
  "ring",
  "serde",
+ "serde_json",
  "sha2",
  "sqexcrypt",
  "steamworks",
@@ -1491,7 +1492,9 @@ name = "nael"
 version = "0.1.0"
 dependencies = [
  "clap",
+ "data-encoding",
  "reqwest",
+ "ring",
  "serde",
  "serde_json",
  "tokio",

@@ -66,6 +66,15 @@ pub struct ExperimentalConfig {
     // alongside login tokens and other stuff
     // By default, this is in ~/.config/microlaunch
     pub encrypted_data_path: Option<String>,
+
+    // Attempts to load Dalamud
+    #[serde(default = "bool::default")]
+    pub use_dalamud: bool,
+
+    // Fake log in - DOES NOT ACTUALLY LOG YOU IN. OBVIOUSLY.
+    // FOR DEVELOPMENT PURPOSES ONLY.
+    #[serde(rename = "fake_login_DO_NOT_ENABLE_UNLESS_YOU_ARE_A_DEVELOPER")]
+    pub fake_login: bool,
 }
 
 lazy_static::lazy_static! {

@@ -1,7 +1,9 @@
 // Launcher module
 // This opens the game lol
 
-use std::collections::HashMap;
+mod dalamud;
+
+use std::{collections::HashMap, process::Stdio, borrow::Borrow};
 use crate::{auth::{ClientLanguage, GameLoginData}, config::GameLaunchStrategy, integrity::{Repository, RepositoryId}};
 
 fn build_cli_args_for_game(map: HashMap::<&str, &str>) -> String {
@@ -69,6 +71,8 @@ pub fn launch_game(data: &GameLoginData, language: ClientLanguage, unique_patch_
 
                 let game_binary_path =
                     std::path::Path::new(&proton_config.game_binary_path);
+
+                let wine64_bin_path = proton_binary_path.parent().unwrap().join("files").join("bin").join("wine64");
         
                 let game_version = Repository(RepositoryId::Ffxiv).get_version().unwrap();
                 println!("FFXIVGame version {game_version}");
@@ -77,7 +81,7 @@ pub fn launch_game(data: &GameLoginData, language: ClientLanguage, unique_patch_
                 
                 // Oh this sucks
                 let mut launch_cmd = if let None = &crate::config::CONFIG.launcher.prefix_command {
-                    std::process::Command::new(&proton_binary_path)
+                    std::process::Command::new(&wine64_bin_path)
                 } else if let Some(pre_command) = &crate::config::CONFIG.launcher.prefix_command {
                     std::process::Command::new(pre_command)
                 } else {
@@ -85,9 +89,9 @@ pub fn launch_game(data: &GameLoginData, language: ClientLanguage, unique_patch_
                 };
 
                 let command = if let Some(_) = &crate::config::CONFIG.launcher.prefix_command {
-                    launch_cmd.arg(proton_binary_path).arg("run")
+                    launch_cmd.arg(&wine64_bin_path)
                 } else if let None = &crate::config::CONFIG.launcher.prefix_command {
-                    launch_cmd.arg("run")
+                    &mut launch_cmd
                 } else {
                     unreachable!()
                 };
@@ -100,12 +104,82 @@ pub fn launch_game(data: &GameLoginData, language: ClientLanguage, unique_patch_
                     command = command.env("IS_FFXIV_LAUNCH_FROM_STEAM", "1");
                 }
 
+                let wineprefix = std::path::Path::new(&proton_config.compat_data_path).join("pfx");
+                command = command.env("WINEPREFIX", wineprefix.as_os_str());
+                command = command.env("WINEDEBUG", "-all"); // Noisy!!!
+
                 println!("LAUNCHING:");
                 println!("{:?} {:?}", command.get_program(), command.get_args());
                 let cmd = command
                     .spawn()
                     .expect("failed to launch executable!");
                 println!("Proton PID = {}", cmd.id());
+
+                if let Some(experimental) = &crate::config::CONFIG.experimental {
+                    if experimental.use_dalamud {
+                        println!("Beginning Dalamud injection process now.");
+                        // Sleep to make sure the game is actually launched
+                        std::thread::sleep(std::time::Duration::from_millis(2000));
+                        // Invoke winedbg
+                        let mut winedbg = std::process::Command::new(&wine64_bin_path);
+                        let winedbg = winedbg.arg("winedbg");
+                        let winedbg = winedbg.arg("--command");
+                        let winedbg = winedbg.arg("info proc");
+                        let winedbg = winedbg.env("WINEPREFIX", wineprefix.as_os_str());
+                        let winedbg = winedbg.stdout(Stdio::piped());
+                        let wdbg_cmd = winedbg.spawn()
+                            .expect("failed to launch winedbg!");
+                        let wdbg_out = wdbg_cmd.wait_with_output().unwrap();
+                        let stdout_str = String::from_utf8(wdbg_out.stdout).unwrap();
+                        // Now figure out what pid ffxiv_dx11.exe is
+                        let binary_name_cow = game_binary_path.file_name().unwrap().to_string_lossy();
+                        let binary_name: &str = binary_name_cow.borrow();
+                        let splits_newline = stdout_str.split("\n");
+                        let mut pid = 0;
+                        for i in splits_newline {
+                            if i.contains(binary_name) {
+                                // We found it
+                                let line = i.trim();
+                                let mut line_split = line.split_whitespace();
+                                let pid_hex = line_split.next().unwrap().trim();
+                                pid = u32::from_str_radix(pid_hex, 16).unwrap();
+                            }
+                        }
+                        println!("ffxiv_dx11.exe = {}", pid);
+                        if pid == 0 {
+                            panic!("pid = 0??? ffxiv_dx11.exe not found!! Maybe winedbg is being uncooperative!");
+                        }
+                        // We have the pid, let's go inject Dalamud
+                        let dalamud_path = wineprefix.clone();
+                        let dalamud_path = dalamud_path.join("drive_c");
+                        let dalamud_path = dalamud_path.join("dalamud");
+                        let start_info = dalamud::DalamudStartInfo::get(
+                            &wineprefix,
+                            &dalamud_path
+                        );
+                        println!("Dalamud start info established - injecting now.");
+                        println!("{:#?}", start_info);
+                        let start_info_json = serde_json::to_string(&start_info).unwrap();
+                        let start_info_b64 = data_encoding::BASE64.encode(start_info_json.as_bytes());
+                        //let dotnet_path = dalamud_path.join("dotnet").join("dotnet.exe");
+
+                        let mut dalamud_injector = std::process::Command::new(&wine64_bin_path);
+                        let dalamud_injector = dalamud_injector.arg(r#"C:\dalamud\rel\Dalamud.Injector.exe"#);
+                        let dalamud_injector = dalamud_injector.arg(pid.to_string());
+                        let dalamud_injector = dalamud_injector.arg(start_info_b64);
+                        let dalamud_injector = dalamud_injector.env("WINEPREFIX", wineprefix.as_os_str());
+                        let dalamud_injector = dalamud_injector.env("WINEDEBUG", "-all");
+                        let dalamud_injector = dalamud_injector.env("DALAMUD_RUNTIME", r#"C:\dalamud\dotnet"#);
+                        println!("{:?} {:?}", dalamud_injector.get_program(), dalamud_injector.get_args());
+                        let injector_child = dalamud_injector
+                            .spawn()
+                            .expect("failed to run injector");
+                        std::thread::spawn(move || {
+                            injector_child.wait_with_output().unwrap();
+                        });
+                    }
+                }
+
                 std::thread::spawn(move || {
                     cmd.wait_with_output().unwrap();
                 });
