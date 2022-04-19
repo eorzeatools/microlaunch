@@ -77,7 +77,20 @@ lazy_static::lazy_static! {
             let cfg_str = std::fs::read_to_string(d).expect("could not open microlaunch.toml");
             toml::from_str::<MicrolaunchConfig>(&cfg_str).expect("bad config!")
         } else {
-            let cfg_str = std::fs::read_to_string("microlaunch.toml").expect("could not open microlaunch.toml");
+            let near_path = std::path::Path::new("./microlaunch.toml").to_path_buf();
+            let mut far_path = dirs::config_dir().expect("No config directory!?");
+            far_path.push("microlaunch");
+            far_path.push("microlaunch.toml");
+            std::fs::create_dir_all(far_path.parent().unwrap()).unwrap();
+            let path_to_use = if near_path.exists() {
+                near_path
+            } else if far_path.exists() {
+                far_path
+            } else {
+                panic!("No microlaunch.toml file found in either current dir or ~/.config/microlaunch.");
+            };
+            println!("loading config from path: {}", path_to_use.to_string_lossy());
+            let cfg_str = std::fs::read_to_string(path_to_use).expect("could not open microlaunch.toml");
             toml::from_str::<MicrolaunchConfig>(&cfg_str).expect("bad config!")
         }
     };
