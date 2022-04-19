@@ -107,7 +107,8 @@ pub fn launch_game(data: &GameLoginData, language: ClientLanguage, unique_patch_
                     launch_cmd.arg(
                         "dalamud/DalamudWineHelper.exe"
                     )
-                        .arg(to_z_path(&Path::new(&proton_config.game_binary_path).to_path_buf()))
+                        .arg(r#"C:\xiv\game\ffxiv_dx11.exe"#)
+                        //.arg(to_z_path(&Path::new(&proton_config.game_binary_path).to_path_buf()))
                 } else if let Some(_) = &crate::config::CONFIG.launcher.prefix_command {
                     launch_cmd.arg(&wine64_bin_path)
                 } else if let None = &crate::config::CONFIG.launcher.prefix_command {
