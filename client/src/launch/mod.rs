@@ -135,6 +135,9 @@ pub fn launch_game(data: &GameLoginData, language: ClientLanguage, unique_patch_
 
                 command = command.env("WINEPREFIX", wineprefix.as_os_str());
                 command = command.env("WINEDEBUG", "-all"); // Noisy!!!
+                if use_dalamud {
+                    command = command.env("DALAMUD_RUNTIME", r#"C:\dalamud\dotnet"#);
+                }
 
                 println!("LAUNCHING:");
                 println!("{:?} {:?}", command.get_program(), command.get_args());
