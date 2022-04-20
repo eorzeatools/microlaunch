@@ -11,7 +11,7 @@ fn build_cli_args_for_game(map: HashMap::<&str, &str>) -> String {
     map.iter().for_each(|(k,v)| {
         out.push_str(&format!(" {k}={v}"))
     });
-    out
+    out.trim_start().to_string()
 }
 
 fn to_z_path(path: &std::path::PathBuf) -> String {
@@ -107,7 +107,6 @@ pub fn launch_game(data: &GameLoginData, language: ClientLanguage, unique_patch_
                     launch_cmd.arg(
                         "dalamud/DalamudWineHelper.exe"
                     )
-                        .arg(r#"C:\xiv\game\ffxiv_dx11.exe"#)
                         //.arg(to_z_path(&Path::new(&proton_config.game_binary_path).to_path_buf()))
                 } else if let Some(_) = &crate::config::CONFIG.launcher.prefix_command {
                     launch_cmd.arg(&wine64_bin_path)
@@ -120,7 +119,14 @@ pub fn launch_game(data: &GameLoginData, language: ClientLanguage, unique_patch_
                 if !use_dalamud {
                     command = command.arg(game_binary_path);
                 }
-                let command = command.args(game_args.split(" "));
+                if use_dalamud {
+                    let bin_path = &Path::new(&proton_config.game_binary_path).to_path_buf();
+                    //let arg_string = r#"""#.to_owned() + &to_z_path(bin_path) + r#"""#;
+                    let arg_string = to_z_path(bin_path);
+                    command = command.arg(arg_string).args(game_args.split(" "));
+                } else {
+                    command = command.args(game_args.split(" "));
+                }
                 let command = command.env("STEAM_COMPAT_DATA_PATH", &proton_config.compat_data_path);
                 let mut command = command.env("STEAM_COMPAT_CLIENT_INSTALL_PATH", &proton_config.compat_client_install_path);
                 if is_steam {
