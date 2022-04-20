@@ -138,6 +138,13 @@ pub fn launch_game(data: &GameLoginData, language: ClientLanguage, unique_patch_
                 if use_dalamud {
                     command = command.env("DALAMUD_RUNTIME", r#"C:\dalamud\dotnet"#);
                 }
+                let dxvk_path_host = Path::new(&proton_config.proton_root_path).to_owned();
+                let dxvk_path_host = dxvk_path_host
+                    .join("files")
+                    .join("lib64")
+                    .join("wine")
+                    .join("dxvk");
+                command = command.env("WINEPATH", to_z_path(&dxvk_path_host));
 
                 println!("LAUNCHING:");
                 println!("{:?} {:?}", command.get_program(), command.get_args());
