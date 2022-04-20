@@ -38,7 +38,7 @@ fn copy_dir_all(src: impl AsRef<std::path::Path>, dst: impl AsRef<std::path::Pat
 
 impl DalamudStartInfo {
     pub fn get(wineprefix_path: &PathBuf, dalamud_path: &PathBuf) -> Self {
-        let roaming_path_win = r#"C:\Users\steamuser\AppData\dalamud"#.to_owned();
+        let roaming_path_win = r#"C:\Users\steamuser\AppData\Roaming\dalamud"#.to_owned();
         let plugin_dir_path_win = roaming_path_win.clone() + r#"\installedPlugins"#;
         let default_plugin_path_win = roaming_path_win.clone() + r#"\devPlugins"#;
         let dalamud_config_path_win = roaming_path_win + r#"\dalamudConfig.json"#;
