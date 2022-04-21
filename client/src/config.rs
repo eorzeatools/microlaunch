@@ -1,5 +1,6 @@
 // microlaunch.toml
 
+use std::collections::HashMap;
 use serde::Deserialize;
 
 #[derive(Deserialize)]
@@ -7,7 +8,8 @@ pub struct MicrolaunchConfig {
     pub launcher: LauncherConfig,
     pub proton: Option<ProtonConfig>,
     pub direct_launch: Option<DirectLaunchConfig>,
-    pub experimental: Option<ExperimentalConfig>
+    pub experimental: Option<ExperimentalConfig>,
+    pub game_environment: Option<HashMap<String, String>>,
 }
 
 #[derive(Deserialize, Debug)]

@@ -148,7 +148,13 @@ pub fn launch_game(data: &GameLoginData, language: ClientLanguage, unique_patch_
                 // I trust you installed DXVK properly
                 // (or WINEPATH works)
                 let wine_dll_overrides = "d3d10=n,b;d3d11=n,b";
-                command = command.env("WINEDLLOVERRIDES", wine_dll_overrides);
+                let mut command = command.env("WINEDLLOVERRIDES", wine_dll_overrides);
+
+                if let Some(env) = &crate::config::CONFIG.game_environment {
+                    for (key, value) in env.iter() {
+                        command = command.env(key, value);
+                    }
+                }
 
                 println!("LAUNCHING:");
                 println!("{:?} {:?}", command.get_program(), command.get_args());

@@ -3,7 +3,7 @@ name = "client"
 description = "A native, versatile FINAL FANTASY XIV Online launcher made for Linux."
 authors = ["Rin <lostkagamine@outlook.com>"]
 license = "MIT"
-version = "1.2.0-UNSTABLE"
+version = "1.2.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
