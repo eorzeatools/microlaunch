@@ -13,6 +13,8 @@ pub struct DalamudStartInfo {
     pub plugin_directory: String,
     pub default_plugin_directory: String,
     pub asset_directory: String,
+
+    #[serde(rename="Language")]
     pub client_language: i32, // see auth::ClientLanguage
     pub delay_initialize_ms: i32,
 
