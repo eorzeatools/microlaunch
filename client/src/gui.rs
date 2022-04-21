@@ -314,7 +314,9 @@ impl MicrolaunchApp {
                                     crate::session::register_session(&d2).await
                                 });
                                 match register {
-                                    RegisterSessionResult::Ok(_) => {},
+                                    RegisterSessionResult::Ok(_) => {
+                                        *NEXT_PHASE.lock() = Some(Box::new(Phase::ReadyToLaunch((ldata, register, data.platform))));
+                                    },
                                     RegisterSessionResult::GamePatchNeeded => {
                                         data.error_text = Some("Game patch is required! microlaunch does not currently do this, sorry!".into());
                                     },
@@ -322,7 +324,6 @@ impl MicrolaunchApp {
                                         data.error_text = Some("Boot patch is required! microlaunch does not currently do this, sorry!".into());
                                     },
                                 }
-                                *NEXT_PHASE.lock() = Some(Box::new(Phase::ReadyToLaunch((ldata, register, data.platform))));
                             },
                             GameLoginResult::SteamLinkRequired => {
                                 data.error_text = Some("Steam link required - please link your Square Enix account to Steam through Windows".into());
