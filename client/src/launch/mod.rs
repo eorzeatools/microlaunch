@@ -107,7 +107,6 @@ pub fn launch_game(data: &GameLoginData, language: ClientLanguage, unique_patch_
                     launch_cmd.arg(
                         "dalamud/DalamudWineHelper.exe"
                     )
-                        //.arg(to_z_path(&Path::new(&proton_config.game_binary_path).to_path_buf()))
                 } else if let Some(_) = &crate::config::CONFIG.launcher.prefix_command {
                     launch_cmd.arg(&wine64_bin_path)
                 } else if let None = &crate::config::CONFIG.launcher.prefix_command {
@@ -145,6 +144,11 @@ pub fn launch_game(data: &GameLoginData, language: ClientLanguage, unique_patch_
                     .join("wine")
                     .join("dxvk");
                 command = command.env("WINEPATH", to_z_path(&dxvk_path_host));
+
+                // I trust you installed DXVK properly
+                // (or WINEPATH works)
+                let wine_dll_overrides = "d3d10=n,b;d3d11=n,b";
+                command = command.env("WINEDLLOVERRIDES", wine_dll_overrides);
 
                 println!("LAUNCHING:");
                 println!("{:?} {:?}", command.get_program(), command.get_args());
