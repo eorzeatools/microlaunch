@@ -53,7 +53,24 @@ pub fn launch_game(data: &GameLoginData, language: ClientLanguage, unique_patch_
                 let game_args = build_cli_args_for_game(argmap);
                 println!("game args: {game_args}");
 
-                let mut command = std::process::Command::new(game_binary_path);
+                let mut command: std::process::Command;
+                if let Some(x) = &crate::config::CONFIG.launcher.prefix_command {
+                    command = std::process::Command::new(x);
+                } else {
+                    command = std::process::Command::new(game_binary_path);
+                }
+
+                let mut command = &mut command;
+                if let Some(_) = &crate::config::CONFIG.launcher.prefix_command {
+                    command = command.arg(game_binary_path);
+                }
+
+                if let Some(env) = &crate::config::CONFIG.game_environment {
+                    for (key, value) in env.iter() {
+                        command = command.env(key, value);
+                    }
+                }
+
                 let mut command = command.args(game_args.split(" "));
                 if is_steam {
                     command = command.env("IS_FFXIV_LAUNCH_FROM_STEAM", "1");

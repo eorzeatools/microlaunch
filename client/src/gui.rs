@@ -333,6 +333,12 @@ impl MicrolaunchApp {
                             },
                             GameLoginResult::Error => {
                                 data.error_text = Some("An error has occurred - username/password invalid?".into());
+                            },
+                            GameLoginResult::NoMoreGameTime => {
+                                data.error_text = Some("This account does not have an active FINAL FANTASY XIV subscription. Please add game time at the Mog Station. (https://sqex.to/Msp)".into());
+                            },
+                            GameLoginResult::TermsNotAccepted => {
+                                data.error_text = Some("This account has not accepted Square Enix's terms and conditions. Please use the official launcher on a Windows system to do so.".into());
                             }
                         }
                     }

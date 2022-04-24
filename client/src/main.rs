@@ -108,6 +108,18 @@ async fn do_full_login_process(data: EncryptedPersistentData) {
             println!("-- ERROR: Uh, report this? https://github.com/ry00001/microlaunch");
             std::process::exit(1);
         },
+        auth::GameLoginResult::NoMoreGameTime => {
+            println!("-- ERROR: This Square Enix account does not have an active");
+            println!("-- ERROR: subscription to FINAL FANTASY XIV. The game can't start.");
+            println!("-- ERROR: Please add some game time at the Mog Station.");
+            println!("-- ERROR: https://sqex.to/Msp");
+            std::process::exit(1);
+        },
+        auth::GameLoginResult::TermsNotAccepted => {
+            println!("-- ERROR: You have not accepted Square Enix's terms and conditions.");
+            println!("-- ERROR: Please use the official launcher (on Windows) to do so.");
+            std::process::exit(1);
+        },
     }
 }
 

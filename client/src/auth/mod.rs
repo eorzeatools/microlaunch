@@ -119,6 +119,8 @@ pub enum GameLoginResult {
     Successful(GameLoginData),
     SteamLinkRequired,
     WrongSteamAccount,
+    NoMoreGameTime,
+    TermsNotAccepted,
     Error
 }
 
@@ -260,6 +262,14 @@ pub async fn login_oauth(
         region: (*keys.get("region").unwrap()).parse::<i32>().unwrap().try_into().unwrap(),
         steam_username: steam_user
     };
+
+    if keys.get("terms") != Some(&"1") {
+        return GameLoginResult::TermsNotAccepted;
+    }
+
+    if !data.playable {
+        return GameLoginResult::NoMoreGameTime;
+    }
 
     GameLoginResult::Successful(data)
 }
