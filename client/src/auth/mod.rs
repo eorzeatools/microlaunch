@@ -121,6 +121,7 @@ pub enum GameLoginResult {
     WrongSteamAccount,
     NoMoreGameTime,
     TermsNotAccepted,
+    NoServiceAccount,
     Error
 }
 
@@ -238,6 +239,11 @@ pub async fn login_oauth(
 
     let f = resp.unwrap().text().await.unwrap();
     println!("got login response");
+
+    if f.contains("login=auth,ng,err,You could not log in because the service account in question is not registered.") {
+        // No service account
+        return GameLoginResult::NoServiceAccount;
+    }
 
     let resp_regex = regex::Regex::new(r#"window.external.user\("login=auth,ok,(.*)"\);"#).unwrap();
     let re_match = resp_regex.captures(&f);

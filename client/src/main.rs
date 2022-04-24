@@ -120,6 +120,12 @@ async fn do_full_login_process(data: EncryptedPersistentData) {
             println!("-- ERROR: Please use the official launcher (on Windows) to do so.");
             std::process::exit(1);
         },
+        auth::GameLoginResult::NoServiceAccount => {
+            println!("-- ERROR: This Square Enix account does not have any FINAL FANTASY XIV");
+            println!("-- ERROR: service accounts registered on it. Please use the Mog Station");
+            println!("-- ERROR: to register one. https://sqex.to/Msp");
+            std::process::exit(1);
+        },
     }
 }
 

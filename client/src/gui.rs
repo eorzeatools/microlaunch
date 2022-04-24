@@ -340,6 +340,9 @@ impl MicrolaunchApp {
                             GameLoginResult::TermsNotAccepted => {
                                 data.error_text = Some("This account has not accepted Square Enix's terms and conditions. Please use the official launcher on a Windows system to do so.".into());
                             }
+                            GameLoginResult::NoServiceAccount => {
+                                data.error_text = Some("This Square Enix account does not have any FINAL FANTASY XIV service accounts registered. Please add one via the Mog Station. (https://sqex.to/Msp)".into());
+                            },
                         }
                     }
                 });
