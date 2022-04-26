@@ -1,5 +1,6 @@
 use auth::{AccountType, GameRegion, Platform, ClientLanguage};
 use clap::Parser;
+use parking_lot::Mutex;
 use persist::{PERSISTENT, EncryptedPersistentData};
 
 mod gui;
@@ -24,6 +25,9 @@ struct CommandLine {
 
     #[clap(long="--fake-login", help="Fake login. !! DO NOT TOUCH THIS OPTION IF YOU ARE NOT A DEVELOPER !!")]
     fake_login: bool,
+
+    #[clap(long="--no-dalamud", help="Forcibly disables Dalamud.")]
+    no_dalamud: bool,
 }
 
 fn run_gui() {
@@ -141,8 +145,18 @@ fn do_autologin(data_ref: &EncryptedPersistentData) {
     });
 }
 
+lazy_static::lazy_static! {
+    pub static ref NO_DALAMUD: Mutex<bool> = {
+        Mutex::new(false)
+    };
+}
+
 fn main() {
     let cli = CommandLine::parse();
+    if cli.no_dalamud {
+        println!("DALAMUD FORCIBLY DISABLED");
+        *NO_DALAMUD.lock() = true;
+    }
 
     let fake_login_cfg = if let Some(e) = &config::CONFIG.experimental {
         e.fake_login

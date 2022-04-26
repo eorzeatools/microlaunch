@@ -106,14 +106,19 @@ pub async fn register_session(logindata: &GameLoginData) -> RegisterSessionResul
         return RegisterSessionResult::BootPatchNeeded;
     }
 
-    let unique_id = res.headers().get("X-Patch-Unique-ID")
-        .expect("could not get X-Patch-Unique-ID")
-        .clone();
+    let hdrs = res.headers().clone();
+    let upid = hdrs.get("X-Patch-Unique-ID");
     let text = res.text().await.unwrap();
+    if let None = upid {
+        // oh no
+        println!("X-Unique-Patch-ID not found - aborting.");
+    }
 
-    if text.is_empty() {
-        // we're done!
-        return RegisterSessionResult::Ok(unique_id.to_str().unwrap().into());
+    if let Some(x) = upid {
+        if text.is_empty() {
+            // we're done!
+            return RegisterSessionResult::Ok(x.to_str().unwrap().into());
+        }
     }
 
     println!("register_session:: FfxivGame needs update. Cannot proceed! Text from request follows:");

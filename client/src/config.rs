@@ -53,7 +53,7 @@ pub struct ProtonConfig {
     pub game_binary_path: String,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Clone)]
 pub struct ExperimentalConfig {
     // Experimental config contains
     // things that you probably shouldn't
@@ -81,7 +81,7 @@ pub struct ExperimentalConfig {
 
 lazy_static::lazy_static! {
     pub static ref CONFIG: MicrolaunchConfig = {
-        if cfg!(test) {
+        let mut struc = if cfg!(test) {
             let mut d = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
             d.pop();
             d.push("microlaunch.toml");
@@ -103,6 +103,15 @@ lazy_static::lazy_static! {
             println!("loading config from path: {}", path_to_use.to_string_lossy());
             let cfg_str = std::fs::read_to_string(path_to_use).expect("could not open microlaunch.toml");
             toml::from_str::<MicrolaunchConfig>(&cfg_str).expect("bad config!")
+        };
+        if *crate::NO_DALAMUD.lock() {
+            if let Some(x) = struc.experimental {
+                struc.experimental = Some(ExperimentalConfig {
+                    use_dalamud: false,
+                    ..x
+                })
+            }
         }
+        struc
     };
 }
