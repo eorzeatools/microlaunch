@@ -314,6 +314,11 @@ pub fn generate_computer_id() -> String {
     use sha2::Digest;
 
     // This is dumb and bad code
+    // but more importantly it's dumb and bad code that
+    // doesn't make any sense here
+    // BECAUSE ON LINUX, WE HAVE /etc/machine-id
+    // IN M O S T CASES AND WE SHOULD ONLY BE RUNNING THIS WHEN NOT THAT
+    // OH FUCKING WELL THIS CAN STAY RN
     let unique_bytes: [u8; 4] = if cfg!(target_os = "linux") {
         let cmd = std::process::Command::new("uname")
             .arg("-a")
