@@ -1,7 +1,6 @@
 // Authentication module for microlaunch
 // Talks to Square Enix API
 
-#![allow(dead_code)]
 #![allow(unused_variables)]
 
 use std::collections::HashMap;
@@ -97,6 +96,9 @@ impl std::fmt::Debug for Expansion {
     }
 }
 
+// TODO: Implement the ability to choose a client language
+// (The official launcher also doesn't do this!)
+#[allow(dead_code)]
 pub enum ClientLanguage {
     Japanese,
     English,
@@ -104,6 +106,9 @@ pub enum ClientLanguage {
     French
 }
 
+// TODO: Wtf is this used for?
+// Uncomment it if it's somehow important to anyone
+/*
 impl ClientLanguage {
     pub fn get_lang_code(&self) -> String {
         match self {
@@ -114,6 +119,7 @@ impl ClientLanguage {
         }
     }
 }
+*/
 
 pub enum GameLoginResult {
     Successful(GameLoginData),
