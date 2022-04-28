@@ -1,8 +1,6 @@
 // Authentication module for microlaunch
 // Talks to Square Enix API
 
-#![allow(unused_variables)]
-
 use std::collections::HashMap;
 use regex::Regex;
 use serde::{Serialize, Deserialize};
@@ -235,7 +233,7 @@ pub async fn login_oauth(
     
     let mut body_map = HashMap::new();
     body_map.insert("_STORED_", csrf);
-    body_map.insert("sqexid", username.into());
+    body_map.insert("sqexid", true_sqexid.into());
     body_map.insert("password", password.into());
     body_map.insert("otppw", otp.into());
     
