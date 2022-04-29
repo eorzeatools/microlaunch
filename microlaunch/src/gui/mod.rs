@@ -246,11 +246,6 @@ impl Application for MicrolaunchApplication {
                             .style(style::UlButtonStylesheet)
                         )
                     )
-                    .push(
-                        Row::new()
-                            .padding(2)
-
-                    )
                     .into()
             },
             MicrolaunchApplication::ReadyToPlay => {
