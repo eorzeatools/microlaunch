@@ -8,7 +8,6 @@ use iced::PickList;
 use iced::Row;
 use iced::Text;
 use iced::TextInput;
-use iced::VerticalAlignment;
 use iced::pick_list;
 use iced::text_input;
 use crate::auth::Platform;
