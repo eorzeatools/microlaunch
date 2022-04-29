@@ -216,6 +216,9 @@ impl Application for MicrolaunchApplication {
                                 .push(
                                     Checkbox::new(
                                         state.save_info,
+                                        // WORKAROUND: The Checkbox label does not
+                                        // allow you to set the text colour
+                                        // so we don't use it and use our own label instead
                                         "",
                                         Message::SaveInfoToggled
                                     )
