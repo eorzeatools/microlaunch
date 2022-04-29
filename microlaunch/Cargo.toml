@@ -1,5 +1,5 @@
 [package]
-name = "client"
+name = "microlaunch"
 description = "A native, versatile FINAL FANTASY XIV Online launcher made for Linux."
 authors = ["Rin <lostkagamine@outlook.com>"]
 license = "MIT"
@@ -10,8 +10,6 @@ edition = "2021"
 
 [dependencies]
 data-encoding = "2.3.2"
-eframe = "0.17.0"
-egui = "0.17.0"
 hex = "0.4.3"
 itertools = "0.10.3"
 lazy_static = "1.4.0"
