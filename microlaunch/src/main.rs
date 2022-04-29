@@ -1,5 +1,6 @@
 use auth::{AccountType, GameRegion, Platform, ClientLanguage};
 use clap::Parser;
+use iced::{Application, Settings};
 use parking_lot::Mutex;
 use persist::{PERSISTENT, EncryptedPersistentData};
 
@@ -33,6 +34,10 @@ struct CommandLine {
 fn run_gui() {
     println!("GUI mode starting...");
     // TODO: GUI mode
+    gui::MicrolaunchApplication::run(Settings {
+        antialiasing: true,
+        ..Settings::default()
+    }).expect("error while starting GUI mode");
 }
 
 async fn do_full_login_process(data: EncryptedPersistentData) {
