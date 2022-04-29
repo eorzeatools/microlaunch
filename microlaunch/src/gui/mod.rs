@@ -8,6 +8,7 @@ use iced::PickList;
 use iced::Row;
 use iced::Text;
 use iced::TextInput;
+use iced::button;
 use iced::pick_list;
 use iced::text_input;
 use crate::auth::Platform;
@@ -31,6 +32,7 @@ pub struct LoginState {
     otp_state: text_input::State,
     platform_state: pick_list::State<Platform>,
     acct_type_state: pick_list::State<AccountType>,
+    button_state: button::State,
 }
 
 impl Default for LoginState {
@@ -48,6 +50,7 @@ impl Default for LoginState {
             otp_state: Default::default(),
             platform_state: Default::default(),
             acct_type_state: Default::default(),
+            button_state: Default::default(),
         }
     }
 }
@@ -61,6 +64,7 @@ pub enum Message {
     SaveInfoToggled(bool),
     PlatformChanged(Platform),
     AccountTypeChanged(AccountType),
+    LoginClicked,
 }
 
 pub enum MicrolaunchApplication {
@@ -112,6 +116,11 @@ impl Application for MicrolaunchApplication {
                     },
                     Message::AccountTypeChanged(x) => {
                         state.account_type = Some(x);
+                        Command::none()
+                    },
+                    Message::LoginClicked => {
+                        // Do login stuff here
+
                         Command::none()
                     },
                 }
@@ -176,6 +185,7 @@ impl Application for MicrolaunchApplication {
                                 Message::PlatformChanged
                             )
                             .style(style::UlPickListStylesheet)
+                            .padding(7)
                         )
                         .push(
                             PickList::new(
@@ -188,10 +198,18 @@ impl Application for MicrolaunchApplication {
                                 Message::AccountTypeChanged
                             )
                             .style(style::UlPickListStylesheet)
+                            .padding(7)
                         )
                         .push(
+                            // If anyone can tell me a better way to get this fucking panel
+                            // to lay out properly without using 3 nested Rows, please do
+                            // @lostkagamine twitter
                             Row::new()
-                            .padding(5) // WORKAROUND: What the fuck, iced?
+                            // WORKAROUND: This .padding needs to be equal
+                            // to the padding of the PickLists
+                            // otherwise this lays out wrong
+                            // I love GUI programming
+                            .padding(7)
                             .push(
                                 Row::new()
                                 .spacing(5)
@@ -209,6 +227,20 @@ impl Application for MicrolaunchApplication {
                                     Text::new("Save information").color(*style::WHITE)
                                 )
                             )
+                        )
+                        .push(
+                            iced::Space::new(iced::Length::FillPortion(3), iced::Length::Fill)
+                        )
+                        .push(
+                            iced::Button::new(
+                                &mut state.button_state,
+                                Text::new("log in!")
+                                    .horizontal_alignment(iced::HorizontalAlignment::Center)
+                            )
+                            .on_press(Message::LoginClicked)
+                            .padding(7)
+                            .width(iced::Length::FillPortion(2))
+                            .style(style::UlButtonStylesheet)
                         )
                     )
                     .push(

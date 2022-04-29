@@ -27,6 +27,59 @@ color!(DARKGRAY (20 20 20));
 color!(SLIGHTLYLIGHTERDARKGRAY (26 26 26));
 color!(LIGHTDARKGRAY (40 40 40));
 color!(TRANSPARENTLIGHTBLUEISH (46 132 201 0.40));
+color!(BLACK (3 3 3));
+
+pub struct UlButtonStylesheet;
+impl button::StyleSheet for UlButtonStylesheet {
+    fn active(&self) -> button::Style {
+        button::Style {
+            shadow_offset: Default::default(),
+            background: Some(bg!(DARKGRAY)),
+            border_radius: 5.0,
+            border_width: 1.0,
+            border_color: *GRAY,
+            text_color: *WHITE,
+        }
+    }
+
+    fn hovered(&self) -> button::Style {
+        let active = self.active();
+
+        button::Style {
+            shadow_offset: active.shadow_offset + Vector::new(0.0, 1.0),
+            background: Some(bg!(LIGHTDARKGRAY)),
+            ..active
+        }
+    }
+
+    fn pressed(&self) -> button::Style {
+        button::Style {
+            shadow_offset: Vector::default(),
+            background: Some(bg!(BLACK)),
+            ..self.active()
+        }
+    }
+
+    fn disabled(&self) -> button::Style {
+        let active = self.active();
+
+        button::Style {
+            shadow_offset: Vector::default(),
+            background: active.background.map(|background| match background {
+                Background::Color(color) => Background::Color(Color {
+                    a: color.a * 0.5,
+                    ..color
+                }),
+            }),
+            text_color: Color {
+                a: active.text_color.a * 0.5,
+                ..active.text_color
+            },
+            ..active
+        }
+    }
+    
+}
 
 pub struct UlPickListStylesheet;
 impl pick_list::StyleSheet for UlPickListStylesheet {
