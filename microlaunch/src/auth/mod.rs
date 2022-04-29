@@ -13,14 +13,48 @@ pub mod steam;
 #[repr(i32)]
 pub enum Platform {
     SqexStore = 0,
-    Steam = 1
+    Steam = 1,
+    Placeholder = 50
 }
 
-#[derive(Hash, PartialEq, Eq, Clone, Debug, Serialize, Deserialize)]
+impl Default for Platform {
+    fn default() -> Self {
+        Self::SqexStore
+    }
+}
+
+impl std::fmt::Display for Platform {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", match self {
+            Self::SqexStore => "Square Enix Store",
+            Self::Steam => "Steam",
+            Self::Placeholder => "Platform...",
+        })
+    }
+}
+
+#[derive(Hash, PartialEq, Eq, Clone, Copy, Debug, Serialize, Deserialize)]
 #[repr(i32)]
 pub enum AccountType {
     Subscription = 0,
-    FreeTrial = 1
+    FreeTrial = 1,
+    Placeholder = 50,
+}
+
+impl Default for AccountType {
+    fn default() -> Self {
+        Self::Subscription
+    }
+}
+
+impl std::fmt::Display for AccountType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", match self {
+            Self::Subscription => "Full game (subscription)",
+            Self::FreeTrial => "Free trial",
+            Self::Placeholder => "Account type..."
+        })
+    }
 }
 
 #[derive(Hash, PartialEq, Eq, Clone, Copy)]

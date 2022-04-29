@@ -1,70 +1,56 @@
+mod style;
+
 use iced::Application;
 use iced::Checkbox;
 use iced::Column;
 use iced::Command;
+use iced::PickList;
 use iced::Row;
 use iced::Text;
 use iced::TextInput;
+use iced::VerticalAlignment;
+use iced::pick_list;
 use iced::text_input;
+use crate::auth::Platform;
+use crate::auth::AccountType;
 
 fn get_version() -> String {
     let hash = &env!("GIT_HASH")[1..8];
     format!("{}@{}/{}", env!("CARGO_PKG_VERSION"), env!("GIT_BRANCH"), hash)
 }
 
-macro_rules! color {
-    ($nm:ident ($r:literal $g:literal $b:literal)) => {
-        lazy_static::lazy_static! {
-            static ref $nm: iced::Color = iced::Color::from_rgb8($r, $g, $b);
-        }
-    }
-}
-
-color!(WHITE (232 232 232));
-color!(GRAY (64 64 64));
-color!(LIGHTGRAY (107 107 107));
-color!(DARKGRAY (20 20 20));
-color!(SLIGHTLYLIGHTERGRAY (26 26 26));
-
-struct UlTextInputStylesheet;
-impl text_input::StyleSheet for UlTextInputStylesheet {
-    fn active(&self) -> text_input::Style {
-        text_input::Style {
-            background: iced::Background::Color(*DARKGRAY),
-            ..Default::default()
-        }
-    }
-
-    fn focused(&self) -> text_input::Style {
-        text_input::Style {
-            background: iced::Background::Color(*SLIGHTLYLIGHTERGRAY),
-            ..Default::default()
-        }
-    }
-
-    fn placeholder_color(&self) -> iced::Color {
-        *LIGHTGRAY
-    }
-
-    fn value_color(&self) -> iced::Color {
-        *WHITE
-    }
-
-    fn selection_color(&self) -> iced::Color {
-        Default::default()
-    }
-}
-
-#[derive(Default)]
 pub struct LoginState {
     username: String,
     password: String,
     otp: String,
     save_info: bool,
+    platform: Option<Platform>,
+    account_type: Option<AccountType>,
 
     username_state: text_input::State,
     pw_state: text_input::State,
     otp_state: text_input::State,
+    platform_state: pick_list::State<Platform>,
+    acct_type_state: pick_list::State<AccountType>,
+}
+
+impl Default for LoginState {
+    fn default() -> Self {
+        Self {
+            username: Default::default(),
+            password: Default::default(),
+            otp: Default::default(),
+            save_info: Default::default(),
+            platform: Some(Platform::Placeholder),
+            account_type: Some(AccountType::Placeholder),
+
+            username_state: Default::default(),
+            pw_state: Default::default(),
+            otp_state: Default::default(),
+            platform_state: Default::default(),
+            acct_type_state: Default::default(),
+        }
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -74,6 +60,8 @@ pub enum Message {
     PasswordChanged(String),
     OnetimeChanged(String),
     SaveInfoToggled(bool),
+    PlatformChanged(Platform),
+    AccountTypeChanged(AccountType),
 }
 
 pub enum MicrolaunchApplication {
@@ -118,7 +106,15 @@ impl Application for MicrolaunchApplication {
                     Message::SaveInfoToggled(x) => {
                         state.save_info = x;
                         Command::none()
-                    }
+                    },
+                    Message::PlatformChanged(x) => {
+                        state.platform = Some(x);
+                        Command::none()
+                    },
+                    Message::AccountTypeChanged(x) => {
+                        state.account_type = Some(x);
+                        Command::none()
+                    },
                 }
             },
             MicrolaunchApplication::ReadyToPlay => todo!(),
@@ -144,7 +140,7 @@ impl Application for MicrolaunchApplication {
                             Message::UsernameChanged
                         )
                         .padding(10)
-                        .style(UlTextInputStylesheet)
+                        .style(style::UlTextInputStylesheet)
                     )
                     .push(
                         TextInput::new(
@@ -155,7 +151,7 @@ impl Application for MicrolaunchApplication {
                         )
                         .padding(10)
                         .password()
-                        .style(UlTextInputStylesheet)
+                        .style(style::UlTextInputStylesheet)
                     )
                     .push(
                         TextInput::new(
@@ -165,22 +161,61 @@ impl Application for MicrolaunchApplication {
                             Message::OnetimeChanged
                         )
                         .padding(10)
-                        .style(UlTextInputStylesheet)
+                        .style(style::UlTextInputStylesheet)
                     )
                     .push(
                         Row::new()
-                            .padding(10)
+                        .spacing(10)
+                        .push(
+                            PickList::new(
+                                &mut state.platform_state,
+                                vec![
+                                    Platform::SqexStore,
+                                    Platform::Steam
+                                ],
+                                state.platform,
+                                Message::PlatformChanged
+                            )
+                            .style(style::UlPickListStylesheet)
+                        )
+                        .push(
+                            PickList::new(
+                                &mut state.acct_type_state,
+                                vec![
+                                    AccountType::Subscription,
+                                    AccountType::FreeTrial
+                                ],
+                                state.account_type,
+                                Message::AccountTypeChanged
+                            )
+                            .style(style::UlPickListStylesheet)
+                        )
+                        .push(
+                            Row::new()
+                            .padding(5) // WORKAROUND: What the fuck, iced?
                             .push(
-                                Checkbox::new(
-                                    state.save_info,
-                                    "",
-                                    Message::SaveInfoToggled
+                                Row::new()
+                                .spacing(5)
+                                .push(
+                                    Checkbox::new(
+                                        state.save_info,
+                                        "",
+                                        Message::SaveInfoToggled
+                                    )
+                                    .style(style::UlCheckboxStylesheet)
+                                    .spacing(0)
+                                )
+                                .push(
+                                    // WORKAROUND: Checkbox does not provide text colour
+                                    Text::new("Save information").color(*style::WHITE)
                                 )
                             )
-                            .push(
-                                // WORKAROUND: Checkbox does not provide text colour
-                                Text::new("Save information").color(*WHITE)
-                            )
+                        )
+                    )
+                    .push(
+                        Row::new()
+                            .padding(2)
+
                     )
                     .into()
             },

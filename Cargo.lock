@@ -2091,6 +2091,7 @@ dependencies = [
  "hex",
  "iced",
  "iced_futures",
+ "iced_style",
  "itertools",
  "lazy_static",
  "parking_lot 0.12.0",

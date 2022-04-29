@@ -22,6 +22,7 @@ pub fn init(acc_type: &AccountType) -> Result<(), steamworks::SteamError> {
     let app_to_use = match acc_type {
         AccountType::Subscription => SteamworksAppid::XivGame,
         AccountType::FreeTrial => SteamworksAppid::XivGameFtrial,
+        AccountType::Placeholder => panic!("Invalid value"),
     };
 
     let (client, _) = crate::steamworks::init_steamworks_for_app(app_to_use)?;

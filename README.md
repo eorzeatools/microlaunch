@@ -19,6 +19,12 @@ See [USAGE.md](/USAGE.md).
 - [XIVLauncher](https://github.com/goatcorp/FFXIVQuickLauncher) and [Dalamud](https://github.com/goatcorp/Dalamud) by [goatcorp](https://github.com/goatcorp). Without XIVLauncher and Dalamud, this project would never have gotten off the ground. Thank you so much! You're the reason why this is possible.
 - microlaunch developed by [Rin](https://twitter.com/lostkagamine).
 
+## Made with
+- [Rust](https://rust-lang.org)
+- [iced](https://iced.rs)
+- [tokio](https://tokio.rs)
+- [reqwest](https://docs.rs/reqwest)
+
 ## Disclaimer
 FINAL FANTASY XIV Online © 2010-2022 SQUARE ENIX CO., LTD., all rights reserved.  
 *I am not affiliated with SQUARE ENIX CO., LTD. in any way.*  
