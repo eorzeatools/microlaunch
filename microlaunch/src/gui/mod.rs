@@ -15,7 +15,7 @@ use crate::auth::Platform;
 use crate::auth::AccountType;
 
 fn get_version() -> String {
-    let hash = &env!("GIT_HASH")[1..8];
+    let hash = &env!("GIT_HASH")[0..8];
     format!("{}@{}/{}", env!("CARGO_PKG_VERSION"), env!("GIT_BRANCH"), hash)
 }
 
