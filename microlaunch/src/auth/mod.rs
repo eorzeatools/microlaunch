@@ -153,6 +153,7 @@ impl ClientLanguage {
 }
 */
 
+#[derive(Debug, Clone)]
 pub enum GameLoginResult {
     Successful(GameLoginData),
     SteamLinkRequired,
@@ -163,7 +164,7 @@ pub enum GameLoginResult {
     Error
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct GameLoginData {
     pub sid: String,
     pub region: GameRegion,
@@ -173,9 +174,9 @@ pub struct GameLoginData {
 }
 
 pub async fn login_oauth(
-    username: &str,
-    password: &str,
-    otp: &str,
+    username: String,
+    password: String,
+    otp: String,
     ftrial: bool,
     steam: bool,
     region: GameRegion,
@@ -260,7 +261,7 @@ pub async fn login_oauth(
             return GameLoginResult::WrongSteamAccount;
         }
 
-        steam_user.as_ref().unwrap()
+        steam_user.clone().unwrap()
     } else {
         username.clone()
     };

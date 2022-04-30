@@ -11,6 +11,22 @@ pub enum RepositoryId {
     Ex4 // endwalker
 }
 
+impl TryFrom<i32> for RepositoryId {
+    type Error = ();
+
+    fn try_from(value: i32) -> Result<Self, Self::Error> {
+        match value {
+            0 => Ok(Self::Ffxiv),
+            1 => Ok(Self::Ex1),
+            2 => Ok(Self::Ex2),
+            3 => Ok(Self::Ex3),
+            4 => Ok(Self::Ex4),
+            -1 => Ok(Self::Boot),
+            _ => Err(())
+        }
+    }
+}
+
 pub struct Repository(pub RepositoryId);
 
 fn get_path_for_exid(base: &Path, exid: u8) -> PathBuf {

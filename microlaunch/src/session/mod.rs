@@ -72,14 +72,14 @@ fn get_version_report(exlevel: i32) -> String {
     report
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub enum RegisterSessionResult {
     Ok(String), // String contains X-Patch-Unique-Id
     GamePatchNeeded,
     BootPatchNeeded
 }
 
-pub async fn register_session(logindata: &GameLoginData) -> RegisterSessionResult {
+pub async fn register_session(logindata: GameLoginData) -> RegisterSessionResult {
     let xiv_patch_ver = Repository(RepositoryId::Ffxiv).get_version().unwrap();
 
     let game_version_report = get_version_report(logindata.max_expansion as i32);

@@ -33,9 +33,12 @@ struct CommandLine {
 
 fn run_gui() {
     println!("GUI mode starting...");
-    // TODO: GUI mode
     gui::MicrolaunchApplication::run(Settings {
         antialiasing: true,
+        window: iced::window::Settings {
+            size: (1024, 250),
+            ..Default::default()
+        },
         ..Settings::default()
     }).expect("error while starting GUI mode");
 }
@@ -66,9 +69,9 @@ async fn do_full_login_process(data: EncryptedPersistentData) {
     }
 
     let oauth_response =
-        auth::login_oauth(&data.sqex_id,
-            &data.password,
-            "",
+        auth::login_oauth(data.sqex_id,
+            data.password,
+            "".into(),
             data.account_type == AccountType::FreeTrial,
             on_steam,
             GameRegion::Europe,
@@ -76,7 +79,7 @@ async fn do_full_login_process(data: EncryptedPersistentData) {
     
     match oauth_response {
         auth::GameLoginResult::Successful(ldata) => {
-            let register_res = session::register_session(&ldata).await;
+            let register_res = session::register_session(ldata.clone()).await;
 
             match register_res {
                 session::RegisterSessionResult::Ok(sid) => {

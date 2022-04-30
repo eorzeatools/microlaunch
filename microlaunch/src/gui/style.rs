@@ -28,6 +28,7 @@ color!(SLIGHTLYLIGHTERDARKGRAY (26 26 26));
 color!(LIGHTDARKGRAY (40 40 40));
 color!(TRANSPARENTLIGHTBLUEISH (46 132 201 0.40));
 color!(BLACK (3 3 3));
+color!(RED (235 76 59));
 
 pub struct UlButtonStylesheet;
 impl button::StyleSheet for UlButtonStylesheet {
