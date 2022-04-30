@@ -2081,7 +2081,7 @@ dependencies = [
 
 [[package]]
 name = "microlaunch"
-version = "2.0.0-dev"
+version = "2.0.0"
 dependencies = [
  "aes-gcm",
  "bincode",
