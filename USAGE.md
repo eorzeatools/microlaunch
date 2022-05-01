@@ -11,7 +11,7 @@
 - Double-check your work.
 
 ## Step 3: Launching
-- Run `client --gui` (or `cargo r -q -p client -- --gui`). The client should launch, and its graphical interface should appear.
+- Run `microlaunch --gui` (or `cargo r -p microlaunch -- --gui`). The client should launch, and its graphical interface should appear.
 - Enter your Square Enix username, password and optionally one-time password. Make sure to select your correct platform and account type.
 - Optionally, check the "Save information" box **and read the disclaimer.**
 - Click "Log in".
@@ -21,6 +21,6 @@
 
 ## Step 4 (optional): Automatic login
 - Once you have logged in at least once with "Save information" checked, the program will store your username and password *in encrypted form* at `~/.config/microlaunch/sensitive_data.enc`.
-- To automatically log in, simply run `client` (or `cargo r -q -p client --`).
-- To get back to the GUI, run `client --gui` (or `cargo r -q -p client -- --gui`).
+- To automatically log in, simply run `microlaunch` (or `cargo r -p microlaunch --`).
+- To get back to the GUI, run `microlaunch --gui` (or `cargo r -p microlaunch -- --gui`).
 - You will see a bunch of terminal output, and after a while, FINAL FANTASY XIV should start!
