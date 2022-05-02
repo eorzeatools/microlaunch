@@ -7,8 +7,8 @@
 run_container() {
     sudo docker run \
     -v $PWD/../:/root/microlaunch/ \
-    -v $PWD/cargo_cache/target/:/root/microlaunch/target \ 
-    -v $PWD/cargo_cache/registry/:/usr/local/cargo/registry \ 
+    -v $PWD/cargo_cache/target/:/root/microlaunch/target \
+    -v $PWD/cargo_cache/registry/:/usr/local/cargo/registry \
     microlaunch-docker
 }
 
