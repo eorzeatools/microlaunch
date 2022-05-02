@@ -1,6 +1,9 @@
 #!/bin/bash
 
-mkdir -p $PWD/output/ # Make sure output directory exists.
+# Make sure required directories exist.
+mkdir -p $PWD/output/
+mkdir -p $PWD/cargo_cache/target
+mkdir -p $PWD/cargo_cache/registry
 
 # As for the three volumes defined below:
 # 1. Mount the source tree into the container for direct usage.
