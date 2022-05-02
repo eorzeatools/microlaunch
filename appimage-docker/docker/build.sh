@@ -12,5 +12,6 @@ cp $SRC/target/release/microlaunch $APPDIR/usr/bin/
 # We have to include libsteam_api.so for microlaunch to work, so we look for it.
 FP=`find $SRC/target/release/ -name libsteam_api.so`
 cp $FP $APPDIR/usr/lib/
+cd /root/
 appimagetool $APPDIR
 cp microlaunch-x86_64.AppImage $SRC/appimage-docker/output/
