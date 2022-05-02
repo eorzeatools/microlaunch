@@ -8,6 +8,6 @@ private/
 dalamud/
 ffxiv_dx11_d3d11.log
 /appimage-docker/output/microlaunch-x86_64.AppImage
-/appimage-docker/steamworks_sdk/*
-/appimage-docker/cargo_cache/target/*
-/appimage-docker/cargo_cache/registry/*
+/appimage-docker/steamworks_sdk
+/appimage-docker/cargo_cache
+/appimage-docker/output
