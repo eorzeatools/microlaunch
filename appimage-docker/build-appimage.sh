@@ -1,5 +1,7 @@
 #!/bin/bash
 
+mkdir -p $PWD/output/ # Make sure output directory exists.
+
 # As for the three volumes defined below:
 # 1. Mount the source tree into the container for direct usage.
 # 2. Mount a local directoy for cargo build cache, so we can reuse it.
