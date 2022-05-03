@@ -8,6 +8,7 @@ mkdir -p $HERE/cache/
 # 1. Mount the source tree into the container for direct usage.
 # 2. Mount a local directoy for cargo build cache, so we can reuse it.
 # 3. Mount a local directory for cargo registry cache, this will probably break at some point?
+# Parameter is for optionally passing environment variables to build.sh script. Used for clean command.
 run_container() {
     sudo docker run \
     -v $HERE/../:/root/microlaunch/ \
@@ -58,7 +59,7 @@ rebuild-container   -   Rebuild docker container, ignoring build cache."
 case $1 in
     rebuild-container)  rebuild_container ;;
     update-container)   build_container;;
-    clean)              run_container "-e PARAMETER=clean" ;;
+    clean)              run_container "-e PARAMETER=clean" ;; # Environment variable is used in build.sh.
     help)               print_help ;;
     "")                 check_container ;;
     *)                  echo "Use 'help' to print help. Terminating!" ;;

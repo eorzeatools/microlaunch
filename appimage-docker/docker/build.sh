@@ -1,6 +1,7 @@
 #!/bin/bash
 SRC=/root/microlaunch
 APPDIR=/root/AppDir
+# Change cargo target directory so we can delete it from inside the container, but keep it outside the container.
 export CARGO_TARGET_DIR=/root/cache/target
 export STEAM_SDK_LOCATION=$SRC/appimage-docker/steamworks_sdk/sdk 
 
@@ -31,6 +32,7 @@ build() {
     build_appimage
 }
 
+# $PARAMTER is passed in as environment variable from build-appimage.sh
 case $PARAMETER in
     clean)  cargo_clean ;;
     *)      build ;;
