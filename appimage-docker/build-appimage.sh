@@ -2,8 +2,7 @@
 HERE="$(dirname "$(readlink -f "${0}")")" # Find out where we are.
 # Make sure required directories exist.
 mkdir -p $HERE/output/
-mkdir -p $HERE/cargo_cache/target
-mkdir -p $HERE/cargo_cache/registry
+mkdir -p $HERE/cache/
 
 # As for the three volumes defined below:
 # 1. Mount the source tree into the container for direct usage.
@@ -12,23 +11,55 @@ mkdir -p $HERE/cargo_cache/registry
 run_container() {
     sudo docker run \
     -v $HERE/../:/root/microlaunch/ \
-    -v $HERE/cargo_cache/target/:/root/microlaunch/target \
-    -v $HERE/cargo_cache/registry/:/usr/local/cargo/registry \
-    microlaunch-docker
+    -v $HERE/cache/cargo:/root/cache/ \
+    -v $HERE/cache/registry:/usr/local/cargo/registry \
+    microlaunch-docker $1
 }
 
-# Check if microlaunch-dcker container already exists. (exit code 0)
-if sudo docker image inspect microlaunch-docker:latest ; [ "$?" -eq 0 ];
-then
-    run_container
-
-# If not, we build it, and check if build succeeds. (exit code 0)
-else
-    if cd $HERE/docker && sudo docker build -t microlaunch-docker:latest . ; [ "$?" -eq 0 ];
+# This simply builds the docker container and tags it. Takes one parameter in case we want to bypass cache.
+build_container() {
+    cd $HERE/docker
+    if cd $HERE/docker && sudo docker build $1 -t microlaunch-docker:latest . ; [ "$?" -eq 0 ];
     then
-        cd ../ && run_container
+        return 0
     else
-        echo "Something went wrong building the cotainer, please inspect the output."
+        echo "Something went wrong building the container, please inspect output. \n Terminating!"
         exit 1
     fi
-fi
+}
+
+# Builds container but bypasses cache.
+rebuild_container() {
+    build_container "--no-cache"
+}
+
+# Check if microlaunch-docker container already exists.
+check_container() { 
+    if sudo docker image inspect microlaunch-docker:latest ; [ "$?" -eq 0 ];
+    then
+        run_container
+
+    # If not, we build it, then run it.
+    else
+        build_container && run_container
+    fi
+}
+
+print_help () {
+    echo "
+Available flags:
+
+help                -   Print this help text.
+clean               -   Run cargo clean inside the build environment.
+update-container    -   Rebuild docker container.
+rebuild-container   -   Rebuild docker container, ignoring build cache."
+}
+
+case $1 in
+    rebuild-container)  rebuild_container ;;
+    update-container)   build_container;;
+    clean)              run_container "-e PARAMETER=clean" ;;
+    help)               print_help ;;
+    "")                 check_container ;;
+    *)                  echo "Use 'help' to print help. Terminating!" ;;
+esac
