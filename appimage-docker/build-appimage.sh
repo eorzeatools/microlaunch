@@ -10,11 +10,11 @@ mkdir -p $HERE/cache/
 # 3. Mount a local directory for cargo registry cache, this will probably break at some point?
 # Parameter is for optionally passing environment variables to build.sh script. Used for clean command.
 run_container() {
-    sudo docker run \
+    sudo docker run $1 \
     -v $HERE/../:/root/microlaunch/ \
     -v $HERE/cache/cargo:/root/cache/ \
     -v $HERE/cache/registry:/usr/local/cargo/registry \
-    microlaunch-docker $1
+    microlaunch-docker
 }
 
 # This simply builds the docker container and tags it. Takes one parameter in case we want to bypass cache.
