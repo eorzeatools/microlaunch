@@ -1,8 +1,10 @@
-use auth::{AccountType, GameRegion, Platform, ClientLanguage};
+use auth::{AccountType, GameRegion, Platform};
 use clap::Parser;
 use iced::{Application, Settings};
 use parking_lot::Mutex;
 use persist::{PERSISTENT, EncryptedPersistentData};
+
+use crate::other::get_client_language;
 
 mod gui;
 mod auth;
@@ -85,7 +87,7 @@ async fn do_full_login_process(data: EncryptedPersistentData) {
                 session::RegisterSessionResult::Ok(sid) => {
                     println!("Everything is OK - launching game!");
                     launch::launch_game(&ldata,
-                            ClientLanguage::English,
+                            get_client_language(),
                             &sid,
                             on_steam);
                 },

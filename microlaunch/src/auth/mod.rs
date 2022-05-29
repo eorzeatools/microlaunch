@@ -128,8 +128,6 @@ impl std::fmt::Debug for Expansion {
     }
 }
 
-// TODO: Implement the ability to choose a client language
-// (The official launcher also doesn't do this!)
 #[allow(dead_code)]
 pub enum ClientLanguage {
     Japanese,
@@ -152,6 +150,22 @@ impl ClientLanguage {
     }
 }
 */
+
+impl From<&str> for ClientLanguage {
+    fn from(value: &str) -> Self {
+        match value {
+            "en" => Self::English,
+            "english" => Self::English,
+            "jp" => Self::Japanese,
+            "japanese" => Self::Japanese,
+            "de" => Self::German,
+            "german" => Self::German,
+            "fr" => Self::French,
+            "french" => Self::French,
+            _ => Self::English
+        }
+    }
+}
 
 #[derive(Debug, Clone)]
 pub enum GameLoginResult {

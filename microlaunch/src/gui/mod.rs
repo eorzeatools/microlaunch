@@ -12,7 +12,6 @@ use iced::TextInput;
 use iced::button;
 use iced::pick_list;
 use iced::text_input;
-use crate::auth::ClientLanguage;
 use crate::auth::GameLoginData;
 use crate::auth::GameLoginResult;
 use crate::auth::GameRegion;
@@ -20,6 +19,7 @@ use crate::auth::Platform;
 use crate::auth::AccountType;
 use crate::integrity::Repository;
 use crate::integrity::RepositoryId;
+use crate::other::get_client_language;
 use crate::session::RegisterSessionResult;
 
 fn get_version() -> String {
@@ -302,7 +302,7 @@ impl Application for MicrolaunchApplication {
                         // launch the game
                         crate::launch::launch_game(
                             ldata,
-                            ClientLanguage::English,
+                            get_client_language(),
                             sid,
                             *steam
                         );

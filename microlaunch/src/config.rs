@@ -77,6 +77,10 @@ pub struct ExperimentalConfig {
     // FOR DEVELOPMENT PURPOSES ONLY.
     #[serde(rename = "fake_login_DO_NOT_ENABLE_UNLESS_YOU_ARE_A_DEVELOPER")]
     pub fake_login: bool,
+
+    // Client language.
+    // You know what this does come on
+    pub client_language: String,
 }
 
 lazy_static::lazy_static! {

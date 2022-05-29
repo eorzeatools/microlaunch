@@ -2,7 +2,7 @@ use std::path::PathBuf;
 
 use serde::{Deserialize, Serialize};
 
-use crate::{integrity::{Repository, RepositoryId}, auth::ClientLanguage};
+use crate::{integrity::{Repository, RepositoryId}, other::get_client_language};
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all="PascalCase")] // For consistency with Dalamud and C#
@@ -81,7 +81,7 @@ impl DalamudStartInfo {
             plugin_directory: plugin_dir_path_win,
             default_plugin_directory: default_plugin_path_win,
             asset_directory: r#"C:\dalamud\assets\"#.into(),
-            client_language: ClientLanguage::English as i32,
+            client_language: get_client_language() as i32,
             delay_initialize_ms: 0,
             game_version: Repository(RepositoryId::Ffxiv).get_version().unwrap()
         }
