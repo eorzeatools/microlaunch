@@ -27,6 +27,9 @@ struct CommandLine {
 
     #[clap(short='a', long="--assets", help="Download assets")]
     pub assets: bool,
+
+    #[clap(short='n', long="--dotnet", help="Download the .NET runtime as well")]
+    pub dotnet: bool,
 }
 
 async fn download_file(url: &str) -> reqwest::Result<Vec<u8>> {
@@ -35,6 +38,25 @@ async fn download_file(url: &str) -> reqwest::Result<Vec<u8>> {
         .bytes()
         .await?;
     Ok(bytes.into_iter().collect::<Vec<u8>>())
+}
+
+async fn simple_download_file(url: &str, res_path: &std::path::Path) -> anyhow::Result<()> {
+    let file_name = res_path.file_name().unwrap().to_string_lossy();
+    print!("Downloading {} ({})... ", file_name, url);
+    std::io::stdout().flush().unwrap();
+    let resp = download_file(url).await;
+    match resp {
+        Ok(data) => {
+            std::fs::write(res_path, data).unwrap();
+            println!("okay");
+        },
+        Err(x) => {
+            println!("NG");
+            return Err(anyhow::Error::from(x));
+        },
+    }
+
+    Ok(())
 }
 
 #[tokio::main]
@@ -78,6 +100,7 @@ async fn main() {
                     println!("okay");
                 },
                 Err(x) => {
+                    println!("NG");
                     panic!("FAILED to download file: {}", x)
                 },
             }
@@ -85,6 +108,36 @@ async fn main() {
         return;
     }
 
-    let resp = api::get_version_info(cli.track.expect("Want a track when downloading main")).await;
-    println!("{:#?}", resp);
+    let resp = api::get_version_info(cli.track.unwrap_or("release".into())).await;
+
+    println!("Downloading Dalamud v.{}", resp.assembly_version);
+    println!("(For game version '{}', this will probably not work with another game version)", resp.supported_game_ver);
+
+    let output_path = std::env::current_dir().unwrap();
+    let output_path = output_path.join(format!("dalamud-latest-{}.zip", resp.assembly_version));
+    simple_download_file(&resp.download_url, &output_path)
+        .await
+        .expect("FAILED to download Dalamud");
+
+    if cli.dotnet {
+        if resp.runtime_required {
+            let rt = resp.runtime_version;
+            println!("Downloading .NET runtime v.{}", rt);
+            let dotnet_url = format!("https://kamori.goats.dev/Dalamud/Release/Runtime/DotNet/{}", rt);
+            let dotnet_desktop_url = format!("https://kamori.goats.dev/Dalamud/Release/Runtime/WindowsDesktop/{}", rt);
+            let current_dir = std::env::current_dir().unwrap();
+            let dotnet_path = current_dir.join(format!("dotnet-runtime-{}.zip", rt));
+            let dotnet_desktop_path = current_dir.join(format!("dotnet-desktop-{}.zip", rt));
+            simple_download_file(&dotnet_url, &dotnet_path)
+                .await
+                .expect("FAILED to download .NET runtime");
+            simple_download_file(&dotnet_desktop_url, &dotnet_desktop_path)
+                .await
+                .expect("FAILED to download .NET desktop runtime");
+        } else {
+            println!("Runtime is not required for this build of Dalamud. Not doing anything.");
+        }
+    }
+
+    println!("All done. Please watch out for Iron Chariot next time.");
 }

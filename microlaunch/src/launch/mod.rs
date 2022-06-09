@@ -4,7 +4,12 @@
 mod dalamud;
 
 use std::{collections::HashMap, process::Stdio, borrow::Borrow, path::Path};
-use crate::{auth::{ClientLanguage, GameLoginData}, config::GameLaunchStrategy, integrity::{Repository, RepositoryId}};
+use crate::{
+    auth::{ClientLanguage, GameLoginData},
+    config::GameLaunchStrategy,
+    integrity::{Repository, RepositoryId},
+    other::to_windows_path
+};
 
 fn build_cli_args_for_game(map: HashMap::<&str, &str>) -> String {
     let mut out: String = "".into();
@@ -12,10 +17,6 @@ fn build_cli_args_for_game(map: HashMap::<&str, &str>) -> String {
         out.push_str(&format!(" {k}={v}"))
     });
     out.trim_start().to_string()
-}
-
-fn to_z_path(path: &std::path::PathBuf) -> String {
-    "Z:".to_owned() + &path.to_string_lossy().replace("/", r#"\"#)
 }
 
 pub fn launch_game(data: &GameLoginData, language: ClientLanguage, unique_patch_id: &str, is_steam: bool) {
@@ -105,6 +106,15 @@ pub fn launch_game(data: &GameLoginData, language: ClientLanguage, unique_patch_
                 } else {
                     false
                 };
+                let dalamud_path = if let Some(experimental) = &crate::config::CONFIG.experimental {
+                    if let Some(path) = &experimental.dalamud_path {
+                        std::path::PathBuf::try_from(path).unwrap().canonicalize().unwrap()
+                    } else {
+                        std::env::current_dir().unwrap().join("dalamud").canonicalize().unwrap()
+                    }
+                } else {
+                    std::env::current_dir().unwrap().join("dalamud").canonicalize().unwrap()
+                };
 
                 let wineprefix = std::path::Path::new(&proton_config.compat_data_path).join("pfx");
                 
@@ -121,9 +131,7 @@ pub fn launch_game(data: &GameLoginData, language: ClientLanguage, unique_patch_
                 };
 
                 let mut command = if use_dalamud {
-                    launch_cmd.arg(
-                        "dalamud/DalamudWineHelper.exe"
-                    )
+                    launch_cmd.arg(to_windows_path(&dalamud_path.join("DalamudWineHelper.exe")))
                 } else if let Some(_) = &crate::config::CONFIG.launcher.prefix_command {
                     launch_cmd.arg(&wine64_bin_path)
                 } else if let None = &crate::config::CONFIG.launcher.prefix_command {
@@ -137,8 +145,7 @@ pub fn launch_game(data: &GameLoginData, language: ClientLanguage, unique_patch_
                 }
                 if use_dalamud {
                     let bin_path = &Path::new(&proton_config.game_binary_path).to_path_buf();
-                    //let arg_string = r#"""#.to_owned() + &to_z_path(bin_path) + r#"""#;
-                    let arg_string = to_z_path(bin_path);
+                    let arg_string = to_windows_path(bin_path);
                     command = command.arg(arg_string).args(game_args.split(" "));
                 } else {
                     command = command.args(game_args.split(" "));
@@ -152,7 +159,7 @@ pub fn launch_game(data: &GameLoginData, language: ClientLanguage, unique_patch_
                 command = command.env("WINEPREFIX", wineprefix.as_os_str());
                 command = command.env("WINEDEBUG", "-all"); // Noisy!!!
                 if use_dalamud {
-                    command = command.env("DALAMUD_RUNTIME", r#"C:\dalamud\dotnet"#);
+                    command = command.env("DALAMUD_RUNTIME", to_windows_path(&dalamud_path.join("dotnet")));
                 }
                 let dxvk_path_host = Path::new(&proton_config.proton_root_path).to_owned();
                 let dxvk_path_host = dxvk_path_host
@@ -160,7 +167,7 @@ pub fn launch_game(data: &GameLoginData, language: ClientLanguage, unique_patch_
                     .join("lib64")
                     .join("wine")
                     .join("dxvk");
-                command = command.env("WINEPATH", to_z_path(&dxvk_path_host));
+                command = command.env("WINEPATH", to_windows_path(&dxvk_path_host));
 
                 // I trust you installed DXVK properly
                 // (or WINEPATH works)
@@ -215,9 +222,6 @@ pub fn launch_game(data: &GameLoginData, language: ClientLanguage, unique_patch_
                             panic!("pid = 0??? ffxiv_dx11.exe not found!! Maybe winedbg is being uncooperative!");
                         }
                         // We have the pid, let's go inject Dalamud
-                        let dalamud_path = wineprefix.clone();
-                        let dalamud_path = dalamud_path.join("drive_c");
-                        let dalamud_path = dalamud_path.join("dalamud");
                         let start_info = dalamud::DalamudStartInfo::get(
                             &wineprefix,
                             &dalamud_path
@@ -229,12 +233,12 @@ pub fn launch_game(data: &GameLoginData, language: ClientLanguage, unique_patch_
                         //let dotnet_path = dalamud_path.join("dotnet").join("dotnet.exe");
 
                         let mut dalamud_injector = std::process::Command::new(&wine64_bin_path);
-                        let dalamud_injector = dalamud_injector.arg(r#"C:\dalamud\rel\Dalamud.Injector.exe"#);
+                        let dalamud_injector = dalamud_injector.arg(to_windows_path(&dalamud_path.join("rel").join("Dalamud.Injector.exe")));
                         let dalamud_injector = dalamud_injector.arg(pid.to_string());
                         let dalamud_injector = dalamud_injector.arg(start_info_b64);
                         let dalamud_injector = dalamud_injector.env("WINEPREFIX", wineprefix.as_os_str());
                         let dalamud_injector = dalamud_injector.env("WINEDEBUG", "-all");
-                        let dalamud_injector = dalamud_injector.env("DALAMUD_RUNTIME", r#"C:\dalamud\dotnet"#);
+                        let dalamud_injector = dalamud_injector.env("DALAMUD_RUNTIME", to_windows_path(&dalamud_path.join("dotnet")));
                         println!("{:?} {:?}", dalamud_injector.get_program(), dalamud_injector.get_args());
                         let injector_child = dalamud_injector
                             .spawn()

@@ -73,6 +73,9 @@ pub struct ExperimentalConfig {
     #[serde(default = "bool::default")]
     pub use_dalamud: bool,
 
+    // Dalamud directory - should contain `assets`, `rel` and `dotnet`
+    pub dalamud_path: Option<String>,
+
     // Fake log in - DOES NOT ACTUALLY LOG YOU IN. OBVIOUSLY.
     // FOR DEVELOPMENT PURPOSES ONLY.
     #[serde(rename = "fake_login_DO_NOT_ENABLE_UNLESS_YOU_ARE_A_DEVELOPER")]

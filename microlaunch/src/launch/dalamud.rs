@@ -1,8 +1,6 @@
 use std::path::PathBuf;
-
 use serde::{Deserialize, Serialize};
-
-use crate::{integrity::{Repository, RepositoryId}, other::get_client_language};
+use crate::{integrity::{Repository, RepositoryId}, other::{get_client_language, to_windows_path}};
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all="PascalCase")] // For consistency with Dalamud and C#
@@ -19,23 +17,6 @@ pub struct DalamudStartInfo {
     pub delay_initialize_ms: i32,
 
     pub game_version: String
-}
-
-use std::{io, fs};
-
-// https://stackoverflow.com/questions/26958489/how-to-copy-a-folder-recursively-in-rust
-fn copy_dir_all(src: impl AsRef<std::path::Path>, dst: impl AsRef<std::path::Path>) -> io::Result<()> {
-    fs::create_dir_all(&dst)?;
-    for entry in fs::read_dir(src)? {
-        let entry = entry?;
-        let ty = entry.file_type()?;
-        if ty.is_dir() {
-            copy_dir_all(entry.path(), dst.as_ref().join(entry.file_name()))?;
-        } else {
-            fs::copy(entry.path(), dst.as_ref().join(entry.file_name()))?;
-        }
-    }
-    Ok(())
 }
 
 impl DalamudStartInfo {
@@ -58,29 +39,17 @@ impl DalamudStartInfo {
         std::fs::create_dir_all(pfx.join("devPlugins")).unwrap();
 
         // Get working directory (dir of Dalamud.Injector.exe)
-        let dalamud_system_dir = dalamud_path;
-
-        // Slam dalamud (and dotnet) into the wineprefix because... I think we should have it in there
-        let dalamud_wineprefix_dest = wineprefix_path
-            .join("drive_c")
-            .join("dalamud");
-        if !dalamud_wineprefix_dest.exists() {
-
-            // !! THIS SHIT DOESN'T WORK!
-            // TODO: FIX THIS!!
-
-            std::fs::create_dir_all(&dalamud_wineprefix_dest).unwrap();
-            copy_dir_all(dalamud_system_dir, dalamud_wineprefix_dest)
-                .expect("failed to copy dalamud to wineprefix");
-            println!("COPIED DALAMUD TO WINEPREFIX");
-        }
+        let dalamud_working_dir = dalamud_path.join("rel").canonicalize().unwrap();
+        let dalamud_assets_dir = dalamud_path.join("assets").canonicalize().unwrap();
+        let dalamud_working_dir_win = to_windows_path(&dalamud_working_dir);
+        let dalamud_assets_dir_win = to_windows_path(&dalamud_assets_dir);
 
         Self {
-            working_directory: r#"C:\dalamud\rel\"#.into(),
+            working_directory: dalamud_working_dir_win,
             configuration_path: dalamud_config_path_win,
             plugin_directory: plugin_dir_path_win,
             default_plugin_directory: default_plugin_path_win,
-            asset_directory: r#"C:\dalamud\assets\"#.into(),
+            asset_directory: dalamud_assets_dir_win,
             client_language: get_client_language() as i32,
             delay_initialize_ms: 0,
             game_version: Repository(RepositoryId::Ffxiv).get_version().unwrap()
