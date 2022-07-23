@@ -160,6 +160,7 @@ pub fn launch_game(data: &GameLoginData, language: ClientLanguage, unique_patch_
                 command = command.env("WINEDEBUG", "-all"); // Noisy!!!
                 if use_dalamud {
                     command = command.env("DALAMUD_RUNTIME", to_windows_path(&dalamud_path.join("dotnet")));
+                    command = command.env("XL_WINEONLINUX", "1");
                 }
                 let dxvk_path_host = Path::new(&proton_config.proton_root_path).to_owned();
                 let dxvk_path_host = dxvk_path_host
