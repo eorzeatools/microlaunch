@@ -1,5 +1,6 @@
-# microlaunch
+# microlaunch-nogui
 A FINAL FANTASY XIV Online native launcher for Linux.
+This branch does not have a GUI, because [iced pinned a broken version of WebGPU](https://twitter.com/lostkagamine/status/1641934661566840833).
 
 ## Why?
 XIVLauncher doesn't work for my incredibly fringe use-case.
