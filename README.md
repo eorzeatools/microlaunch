@@ -1,3 +1,8 @@
+# ⚠️ PROJECT RETIRED
+Improvements in the FFXIV launcher space mean that this tool is no longer necessary. Instead, please look at [XIVLauncher.Core](https://github.com/goatcorp/XIVLauncher.Core) for all your Linux launching needs.
+
+This repository is archived.
+
 # microlaunch
 A FINAL FANTASY XIV Online native launcher for Linux.
 
