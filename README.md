@@ -5,7 +5,7 @@ A FINAL FANTASY XIV Online native launcher for Linux.
 XIVLauncher doesn't work for my incredibly fringe use-case.
 
 ## Who is this for?
-[Myself](https://kagamine-r.in).
+Formerly, me, but now XLCore exists.
 
 ## How to compile?
 See [BUILDING.md](/BUILDING.md).
@@ -17,7 +17,6 @@ See [USAGE.md](/USAGE.md).
 ## Credits and special thanks
 - [FINAL FANTASY XIV](https://finalfantasyxiv.com) by SQUARE ENIX CO., LTD. Thanks for the game!
 - [XIVLauncher](https://github.com/goatcorp/FFXIVQuickLauncher) and [Dalamud](https://github.com/goatcorp/Dalamud) by [goatcorp](https://github.com/goatcorp). Without XIVLauncher and Dalamud, this project would never have gotten off the ground. Thank you so much! You're the reason why this is possible.
-- microlaunch developed by [Rin](https://twitter.com/lostkagamine).
 
 ## Made with
 - [Rust](https://rust-lang.org)
